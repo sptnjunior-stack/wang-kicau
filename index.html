@@ -494,6 +494,74 @@ img{max-width:100%}
 .mark.big .coin{width:48px; height:48px}
 .thumb.missing{min-width:84px; background:var(--surface-2)}
 @media (prefers-reduced-motion: reduce){ .syncpill.busy::before{animation:none} }
+
+/* ===== phones: bottom tab bar, floating add button, sheets, collapsible filters ===== */
+.tabbar,.fab,.ftoggle,.fsum,.backbtn{display:none}
+.menu{padding:6px}
+.menurow{display:grid; grid-template-columns:minmax(0,1fr) auto 16px; gap:10px; align-items:center; width:100%; padding:14px 12px; border:0; border-bottom:1px solid var(--line); background:none; color:var(--fg); font:inherit; text-align:left; cursor:pointer; border-radius:12px}
+.menurow:last-child{border-bottom:0}
+.menurow:hover{background:var(--surface-2)}
+.menurow .ml{font-weight:600}
+.card.morehead{display:flex; gap:14px; align-items:center}
+@media (max-width:720px){
+  .app{display:block; grid-template-columns:none}
+  .side{display:none !important}
+  .main{padding-inline:14px; padding-block:calc(12px + env(safe-area-inset-top,0px)) calc(120px + env(safe-area-inset-bottom,0px))}
+  .pagehead{padding-bottom:10px; align-items:flex-end}
+  .pagehead h1{font-size:28px; letter-spacing:-.02em}
+  .pagehead p{font-size:13px}
+  #btn-add{display:none}
+  .topbtns .btn{padding:8px 12px}
+  .backbtn{display:inline-flex; align-items:center; gap:2px; border:0; background:none; color:var(--accent-ink); font:inherit; font-weight:600; font-size:15px; padding:4px 0; margin-bottom:2px; cursor:pointer}
+  .backbtn[hidden]{display:none}
+  /* tab bar */
+  .tabbar{display:grid; grid-template-columns:repeat(5,1fr); gap:2px; position:fixed; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom,0px)); z-index:30; padding:6px;
+    border-radius:28px; background:var(--sheen),var(--glass-strong); border:1px solid var(--glass-border); box-shadow:var(--glass-hi),var(--glass-shadow);
+    -webkit-backdrop-filter:var(--blur-strong); backdrop-filter:var(--blur-strong)}
+  .tabbar button{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:52px; border:0; background:none; color:var(--muted); font:inherit; font-size:11px; font-weight:600; border-radius:22px; cursor:pointer; padding:4px 2px}
+  .tabbar button[aria-current="page"]{color:var(--accent-ink); background:var(--accent-soft)}
+  .fab{display:grid; place-items:center; position:fixed; right:18px; bottom:calc(88px + env(safe-area-inset-bottom,0px)); z-index:31; width:58px; height:58px; border-radius:50%; border:1px solid color-mix(in srgb,var(--accent) 60%,white);
+    color:var(--accent-fg); background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0) 65%),var(--accent); box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 24px color-mix(in srgb,var(--accent) 40%,transparent); cursor:pointer}
+  .fab[hidden]{display:none}
+  .fab:active{transform:scale(.95)}
+  /* filters collapse into one line */
+  .filters{top:calc(env(safe-area-inset-top,0px) + 8px); padding:8px 10px; gap:8px; align-items:center}
+  .ftoggle{display:inline-flex; align-items:center; gap:6px; border:0; border-radius:999px; padding:8px 12px; font:inherit; font-size:14px; font-weight:600; background:var(--sheen),var(--glass-strong); color:var(--fg); box-shadow:var(--glass-hi); cursor:pointer}
+  .ftoggle[aria-expanded="true"]{background:var(--accent-soft); color:var(--accent-ink)}
+  .fsum{display:block; flex:1; min-width:0; font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .filters:not(.open) .fld,.filters:not(.open) .reset{display:none !important}
+  .filters.open .fld{flex:1 1 calc(50% - 8px)}
+  .filters .ctl{max-width:none; width:100%}
+  /* comfortable touch + no iOS zoom on focus */
+  .ctl,input,select,textarea{font-size:16px}
+  .btn{min-height:40px}
+  .btn.sm{min-height:34px}
+  .seg{max-width:100%; overflow-x:auto}
+  .seg button{padding:7px 12px; white-space:nowrap}
+  /* forms open as bottom sheets */
+  .overlay{align-items:flex-end; padding:0}
+  .modal{max-width:100%; margin:0; border-radius:28px 28px 0 0; max-height:calc(100dvh - env(safe-area-inset-top,0px) - 12px); display:flex; flex-direction:column; border-bottom:0}
+  .modal .body{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px}
+  .modal header{padding:14px 16px; position:relative}
+  .modal header::before{content:""; position:absolute; top:6px; left:50%; transform:translateX(-50%); width:38px; height:5px; border-radius:3px; background:var(--line-strong)}
+  .modal footer{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+  .modal footer > div{flex:1; justify-content:flex-end}
+  .modal footer .btn.primary{flex:1}
+  /* content tweaks */
+  .card{padding:16px; border-radius:22px}
+  .kpi{padding:16px}
+  .kpi .v{font-size:26px}
+  .pair{grid-template-columns:1fr}
+  .pairright{flex-direction:row; justify-content:space-between; align-items:center}
+  .grid2{gap:14px}
+  main{gap:14px; margin-top:14px}
+  .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px)); border-radius:18px}
+  .xrow{padding:12px 2px}
+  .share{padding:10px}
+  .shares{grid-template-columns:1fr}
+  .lightbox{padding:10px}
+  body::before{animation:none}
+}
 </style>
 <script src="assets/config.js"></script>
 </head>
@@ -526,7 +594,7 @@ img{max-width:100%}
 </aside>
 <div class="main">
   <header class="pagehead">
-    <div><h1 id="ptitle">Dashboard</h1><p id="psub" class="small muted"></p></div>
+    <div><button class="backbtn" id="btn-back" data-act="tab" data-id="more" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>More</button><h1 id="ptitle">Dashboard</h1><p id="psub" class="small muted"></p></div>
     <div class="topbtns">
       <button class="btn" data-act="scan-new" id="btn-scan" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 011-1h2M11 2h2a1 1 0 011 1v2M14 11v2a1 1 0 01-1 1h-2M5 14H3a1 1 0 01-1-1v-2M5 6h6M5 8h6M5 10h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Scan bill</button>
       <button class="btn primary" data-act="add" id="btn-add">+ Add expense</button>
@@ -534,6 +602,8 @@ img{max-width:100%}
   </header>
 
   <section class="filters" id="filters" aria-label="Filters">
+    <button class="ftoggle" id="flt-toggle" data-act="filters-toggle" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M4.5 8h7M7 12h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span id="flt-toggle-t">Filters</span></button>
+    <span class="fsum" id="flt-sum"></span>
     <div class="fld" id="fld-preset"><label for="flt-preset">Dates</label>
       <select class="ctl" id="flt-preset">
         <option value="all">All time</option>
@@ -555,6 +625,14 @@ img{max-width:100%}
   <main id="view"></main>
 </div>
 </div>
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button data-act="tab" data-id="dashboard"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Home</span></button>
+  <button data-act="tab" data-id="expenses"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Expenses</span></button>
+  <button data-act="tab" data-id="settle"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Settle</span></button>
+  <button data-act="tab" data-id="events"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Events</span></button>
+  <button data-act="tab" data-id="more"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>More</span></button>
+</nav>
+<button class="fab" id="fab-add" data-act="add" aria-label="Add expense"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
 <div id="modal-root"></div>
 <div id="lightbox-root"></div>
 <div id="toast-root"></div>
@@ -895,17 +973,24 @@ const receiptSrc=r=>r?(r.url||(r.id?"/_blob/"+r.id:"")):"";
 
 /* ---------- render ---------- */
 const PAGES={dashboard:["Dashboard","Where the group's money goes"],expenses:["Expenses","Every bill, who paid and who still owes"],settle:["Split & settle","Who transfers to whom"],
-  events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
+  events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],more:["More","Group, members and settings"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
 function renderAll(){
   applyAppearance();
   const n=S.members.length;
   $("#gsub").textContent=(S.config.groupName?S.config.groupName+" · ":"")+(n?`${n} member${n>1?"s":""} · ${S.events.length} event${S.events.length===1?"":"s"}`:"Shared bills in Rupiah");
   if(!PAGES[S.tab])S.tab="dashboard";
   document.querySelectorAll(".nav-i").forEach(t=>{if(t.dataset.id===S.tab)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current");});
-  $("#ptitle").textContent=PAGES[S.tab][0];$("#psub").textContent=PAGES[S.tab][1];
+  $("#ptitle").textContent=PAGES[S.tab][0];
+  const CFG_TABS=["members","categories","appearance","sync"];const tabHi=CFG_TABS.includes(S.tab)?"more":S.tab;
+  document.querySelectorAll("#tabbar button").forEach(t=>{if(t.dataset.id===tabHi)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current");});
+  $("#btn-back").hidden=!CFG_TABS.includes(S.tab);
+  $("#fab-add").hidden=S.readOnly||CFG_TABS.includes(S.tab)||S.tab==="more";
+  {const nf_=(S.f.preset!=="all")+!!S.f.cat+!!S.f.person+!!S.f.event;$("#flt-toggle-t").textContent="Filters"+(nf_?" · "+nf_:"");
+   $("#flt-toggle").setAttribute("aria-expanded",S.filtersOpen?"true":"false");$("#filters").classList.toggle("open",!!S.filtersOpen);
+   $("#flt-sum").textContent=ctxLabel()+(S.f.person?" · "+mname(S.f.person):"");}$("#psub").textContent=PAGES[S.tab][1];
   $("#btn-add").disabled=S.readOnly;
   $("#btn-scan").hidden=S.readOnly;
-  const cfg=S.tab==="members"||S.tab==="categories"||S.tab==="appearance"||S.tab==="sync";$("#filters").hidden=cfg;
+  const cfg=S.tab==="more"||S.tab==="members"||S.tab==="categories"||S.tab==="appearance"||S.tab==="sync";$("#filters").hidden=cfg;
   const evTab=S.tab==="events";
   $("#fld-preset").hidden=evTab;$("#fld-event").hidden=evTab;
   $("#flt-preset").value=S.f.preset;
@@ -926,6 +1011,7 @@ function renderAll(){
   if(S.tab==="members")v.innerHTML=viewMembers();
   else if(S.tab==="categories")v.innerHTML=viewCategories();
   else if(S.tab==="appearance")v.innerHTML=viewAppearance();
+  else if(S.tab==="more")v.innerHTML=viewMore();
   else if(S.tab==="sync")v.innerHTML=viewSync();
   else if(!S.members.length)v.innerHTML=viewOnboard();
   else if(S.tab==="events")v.innerHTML=viewEvents();
@@ -1251,6 +1337,14 @@ function viewSync(){
     <div class="card"><h2>This device</h2><p class="small muted" style="margin:2px 0 0">The passphrase unlock is remembered on this device. Lock it if you're on a shared or borrowed phone or computer.</p>
       <button class="btn sm danger" data-act="lock-device" style="margin-top:12px">Lock this device</button></div>
   </div>`;
+}
+function viewMore(){
+  const modeName={light:"Light",dark:"Dark",auto:"Auto"}[S.mode]||"Light";
+  const accName=((typeof ACCENTS!=="undefined"&&ACCENTS.find(a=>a[0]===S.config.colorTheme))||[0,"Electric"])[1];
+  const rows=[["members","Members",S.members.length+" of "+MAX_MEMBERS],["categories","Categories",cats().length+" categories"],["appearance","Appearance",modeName+" · "+accName]];
+  if(typeof viewSync==="function")rows.push(["sync","Sync & backup",""]);
+  return `<div class="card morehead"><div class="mark">${$(".mark")?$(".mark").innerHTML:""}</div><div style="min-width:0"><h2>Wang-Kicau</h2><p class="small muted" style="margin:2px 0 0">${esc(S.config.groupName||"Your group")} · ${S.members.length} member${S.members.length===1?"":"s"} · ${S.events.length} event${S.events.length===1?"":"s"}</p>${typeof renderSyncPill==="function"?`<span class="syncpill" id="sync-status" style="margin-top:8px"></span>`:""}</div></div>
+  <div class="card menu">${rows.map(([id,l,sub])=>`<button class="menurow" data-act="tab" data-id="${id}"><span class="ml">${l}</span><span class="small muted">${esc(sub)}</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`).join("")}</div>`;
 }
 function viewAppearance(){
   const dark=isDark();const cur=ACCENTS.some(x=>x[0]===S.config.colorTheme)?S.config.colorTheme:"electric";
@@ -1759,6 +1853,7 @@ document.addEventListener("click",async e=>{
     case "status":S.status=id;renderAll();break;
     case "groupby":S.groupBy=id;persist();renderAll();break;
     case "trend":S.trend=id;persist();renderAll();break;
+    case "filters-toggle":S.filtersOpen=!S.filtersOpen;renderAll();break;
     case "sync-now":setSync("saving");G.dirty?push():pull();break;
     case "backup":downloadBackup();break;
     case "lock-device":lockDevice(false);break;
