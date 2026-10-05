@@ -1,0 +1,1869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3939FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wang-Kicau">
+<meta name="description" content="Wang-Kicau — shared expense tracker for our group.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<title>Wang-Kicau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: ledger app with left sidebar, sticky filter strip, one working view.
+   Palette from the group's references: Electric, Blue, Dare Devil, Red-Orange, Gold, Royal/Mauve, Arctic, Bitter Lime, Black.
+   data-appearance (light | dark | auto, per device) picks the neutral set; data-accent (group colour theme) supplies
+   fill / strong / soft / ink / text-on-fill for light and dark, and the mode block chooses which set applies. */
+:root{
+  color-scheme:light;
+  --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F4F4F7; --line:#E6E6EC; --line-strong:#D0D0DA; --fg:#0B0B0F; --muted:#666675;
+  --gold:#F2BB05; --owed:#D63A00; --owed-soft:#FFE9E0; --paid:#3F7A00; --paid-soft:#F1FFD1; --warn-soft:#FFF7D6;
+  --side:#FAFAFC; --scrim:rgba(11,11,15,.42); --shadow:0 10px 40px rgba(11,11,15,.14); --seg-shadow:0 1px 3px rgba(11,11,15,.14);
+  /* member / category palette (fill + text on fill) */
+  --p0:#3939FF; --pf0:#FFFFFF; --p1:#FF5B22; --pf1:#0B0B0F; --p2:#F2BB05; --pf2:#0B0B0F; --p3:#DBB8FF; --pf3:#1A0B33;
+  --p4:#AEE6ED; --pf4:#0B2A2E; --p5:#C2FF01; --pf5:#0B0B0F; --p6:#0B0B0F; --pf6:#FFFFFF; --p7:#0044FF; --pf7:#FFFFFF;
+  --p8:#B83200; --pf8:#FFFFFF; --p9:#1F8796; --pf9:#FFFFFF; --p10:#7A3FE0; --pf10:#FFFFFF; --p11:#5F7F00; --pf11:#FFFFFF;
+  /* accent: Electric (default) */
+  --al:#3939FF; --asl:#2222D9; --aql:#EDEDFF; --ail:#3939FF; --afl:#FFFFFF;
+  --ad:#7A7AFF; --asd:#5C5CF0; --aqd:#1C1C45; --aid:#9A9AFF; --afd:#0B0B1F;
+  --f-body:"Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:14px; --r-sm:9px;
+  --accent:var(--al); --accent-strong:var(--asl); --accent-soft:var(--aql); --accent-ink:var(--ail); --accent-fg:var(--afl);
+}
+:root[data-accent="blue"]{--al:#0044FF;--asl:#0035C7;--aql:#E6EDFF;--ail:#0044FF;--afl:#FFFFFF;--ad:#5A86FF;--asd:#3D6CF0;--aqd:#13214A;--aid:#86A6FF;--afd:#06123A}
+:root[data-accent="daredevil"]{--al:#FF5B22;--asl:#E2440D;--aql:#FFECE4;--ail:#C93F0C;--afl:#0B0B0F;--ad:#FF6B35;--asd:#E5531F;--aqd:#3A1A0E;--aid:#FF8A5C;--afd:#0B0B0F}
+:root[data-accent="redorange"]{--al:#FF4502;--asl:#D93A00;--aql:#FFE9E0;--ail:#C23400;--afl:#FFFFFF;--ad:#FF5A1F;--asd:#E04408;--aqd:#3D170A;--aid:#FF8355;--afd:#0B0B0F}
+:root[data-accent="gold"]{--al:#F2BB05;--asl:#D6A400;--aql:#FFF7D6;--ail:#8A6800;--afl:#0B0B0F;--ad:#F2BB05;--asd:#D6A400;--aqd:#362B05;--aid:#F5C93A;--afd:#0B0B0F}
+:root[data-accent="royal"]{--al:#DBB8FF;--asl:#C79BFF;--aql:#F6EEFF;--ail:#7A3FD1;--afl:#1A0B33;--ad:#DBB8FF;--asd:#C79BFF;--aqd:#2B2140;--aid:#DBB8FF;--afd:#1A0B33}
+:root[data-accent="arctic"]{--al:#AEE6ED;--asl:#8CD6DF;--aql:#EBF9FB;--ail:#1C7A86;--afl:#0B2A2E;--ad:#AEE6ED;--asd:#8CD6DF;--aqd:#152F31;--aid:#AEE6ED;--afd:#0B2A2E}
+:root[data-accent="lime"]{--al:#C2FF01;--asl:#AEE600;--aql:#F4FFD6;--ail:#4C6B00;--afl:#0B0B0F;--ad:#C2FF01;--asd:#AEE600;--aqd:#243000;--aid:#C2FF01;--afd:#0B0B0F}
+:root[data-accent="black"]{--al:#0B0B0F;--asl:#000000;--aql:#EFEFF2;--ail:#0B0B0F;--afl:#FFFFFF;--ad:#F2F2F5;--asd:#D6D6DC;--aqd:#26262D;--aid:#F2F2F5;--afd:#0B0B0F}
+:root[data-appearance="dark"],:root[data-appearance="auto"][data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B0B0F; --surface:#141419; --surface-2:#1C1C23; --line:#2A2A33; --line-strong:#3A3A46; --fg:#F2F2F5; --muted:#9B9BAA;
+  --gold:#F2BB05; --owed:#FF7A45; --owed-soft:#3A1A0E; --paid:#C2FF01; --paid-soft:#232E05; --warn-soft:#332A08;
+  --side:#0F0F14; --scrim:rgba(0,0,0,.6); --shadow:0 10px 40px rgba(0,0,0,.5); --seg-shadow:0 1px 3px rgba(0,0,0,.45);
+  --p0:#7A7AFF; --pf0:#0B0B1F; --p6:#F2F2F5; --pf6:#0B0B0F; --p7:#5A86FF; --pf7:#06123A; --p8:#FF7A45; --pf8:#0B0B0F; --p9:#5CC3D1; --pf9:#06262B; --p10:#A880F2; --pf10:#140833; --p11:#A6D600; --pf11:#0B0B0F;
+  --accent:var(--ad); --accent-strong:var(--asd); --accent-soft:var(--aqd); --accent-ink:var(--aid); --accent-fg:var(--afd);
+}
+@media (prefers-color-scheme: dark){ :root[data-appearance="auto"]:not([data-theme="light"]){
+  color-scheme:dark;
+  --bg:#0B0B0F; --surface:#141419; --surface-2:#1C1C23; --line:#2A2A33; --line-strong:#3A3A46; --fg:#F2F2F5; --muted:#9B9BAA;
+  --gold:#F2BB05; --owed:#FF7A45; --owed-soft:#3A1A0E; --paid:#C2FF01; --paid-soft:#232E05; --warn-soft:#332A08;
+  --side:#0F0F14; --scrim:rgba(0,0,0,.6); --shadow:0 10px 40px rgba(0,0,0,.5); --seg-shadow:0 1px 3px rgba(0,0,0,.45);
+  --p0:#7A7AFF; --pf0:#0B0B1F; --p6:#F2F2F5; --pf6:#0B0B0F; --p7:#5A86FF; --pf7:#06123A; --p8:#FF7A45; --pf8:#0B0B0F; --p9:#5CC3D1; --pf9:#06262B; --p10:#A880F2; --pf10:#140833; --p11:#A6D600; --pf11:#0B0B0F;
+  --accent:var(--ad); --accent-strong:var(--asd); --accent-soft:var(--aqd); --accent-ink:var(--aid); --accent-fg:var(--afd);
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg); color:var(--fg); font-family:var(--f-body); font-size:15px; line-height:1.5}
+.app{display:grid; grid-template-columns:236px minmax(0,1fr); min-height:100vh}
+.side{position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; border-right:1px solid var(--line); background:var(--side); padding:20px 14px; display:flex; flex-direction:column; gap:24px}
+.main{min-width:0; max-width:1180px; width:100%; padding-inline:28px; padding-block:22px 72px}
+.nav{display:flex; flex-direction:column; gap:2px}
+.nav-i{display:flex; gap:10px; align-items:center; width:100%; padding:9px 12px; border-radius:9px; border:0; background:none; color:var(--muted); font-weight:600; font-size:14px; cursor:pointer; text-align:left}
+.nav-i:hover{background:var(--surface-2); color:var(--fg)}
+.nav-i[aria-current="page"]{background:var(--accent); color:var(--accent-fg)}
+.nav-group{margin-top:10px; padding-top:10px; border-top:1px solid var(--line)}
+.nav-h{display:flex; gap:10px; align-items:center; padding:9px 12px 4px; color:var(--fg); font-weight:700; font-size:13px}
+.nav-i.sub{padding-left:40px; font-weight:500}
+.pagehead{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding-bottom:12px}
+.pagehead h1{font-size:24px; font-weight:800}
+.pagehead p{margin:2px 0 0}
+.gname{font-weight:800; font-size:15px; line-height:1.25; overflow-wrap:anywhere}
+.kpis.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); align-items:start}
+.kpi-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; width:100%; background:none; border:0; padding:0; text-align:left; cursor:pointer; color:inherit}
+.kpi-head > span:first-child{display:flex; flex-direction:column}
+.acc-tog{display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--muted); white-space:nowrap; padding:4px 8px; border-radius:7px; background:var(--surface-2)}
+.kpi-head:hover .acc-tog{color:var(--fg)}
+.acc-chev{transition:transform .15s}
+.kpi.open .acc-chev{transform:rotate(180deg)}
+.acc-body{margin-top:14px; padding-top:14px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:8px}
+.owrow{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line)}
+.owamt{font-weight:700; color:var(--owed)}
+.rank{width:16px; color:var(--muted); font-size:12px; text-align:right}
+.hb.dim{opacity:.45}
+.tiles{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:14px}
+.tiles.acc{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.tile{display:flex; flex-direction:column; gap:8px; align-items:flex-start; padding:10px; border:1.5px solid var(--line); border-radius:var(--r-sm); background:var(--surface); cursor:pointer; text-align:left; color:var(--fg)}
+.tiles.acc .tile{flex-direction:row; align-items:center}
+.tile:hover{border-color:var(--line-strong)}
+.tile[aria-pressed="true"]{border-color:var(--accent-ink); box-shadow:0 0 0 1px var(--accent-ink)}
+.tile:disabled{cursor:not-allowed; opacity:.6}
+.tl{font-weight:600; font-size:14px}
+.sw{width:22px; height:22px; border-radius:50%; flex:none}
+.mprev{display:flex; width:100%; height:64px; border-radius:7px; overflow:hidden; border:1px solid var(--line)}
+.mprev.split{border:0; gap:0}
+.mprev.split .mprev{border-radius:0; border:0}
+.mprev.split{border:1px solid var(--line)}
+.mside{width:26%}
+.mlines{flex:1; display:flex; flex-direction:column; gap:6px; padding:10px}
+.mlines span{height:5px; border-radius:3px; display:block}
+.mlines .mbtn{width:36%; height:10px; margin-top:auto}
+.avbtn{display:inline-flex; align-items:center; gap:2px; background:none; border:0; padding:2px; border-radius:999px; cursor:pointer; color:var(--muted)}
+.avbtn:hover,.avbtn[aria-expanded="true"]{background:var(--surface-2)}
+.swatches{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 0 10px 4px}
+.swatch{width:26px; height:26px; border-radius:50%; border:2px solid var(--surface); box-shadow:0 0 0 1px var(--line-strong); cursor:pointer; position:relative}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.swatch.taken::after{content:""; position:absolute; width:6px; height:6px; border-radius:50%; background:var(--dot); left:50%; top:50%; transform:translate(-50%,-50%)}
+.swatches{display:grid; grid-template-columns:repeat(auto-fill,26px); gap:8px}
+.swnote{grid-column:1 / -1}
+.pv{display:flex; flex-direction:column; align-items:flex-end; line-height:1.25}
+h1,h2,h3{text-wrap:balance; margin:0; line-height:1.2; letter-spacing:-.015em}
+h2{font-size:18px; font-weight:700}
+h3{font-size:15px; font-weight:600}
+.num{font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:600}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent-ink); outline-offset:2px}
+a{color:var(--accent-ink)}
+
+.top{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:12px; min-width:0}
+.mark{width:42px; height:42px; border-radius:11px; background:var(--accent); color:var(--accent-fg); display:grid; place-items:center; font-weight:800; font-size:15px; flex:none}
+.brand h1{font-size:22px; font-weight:800; overflow-wrap:anywhere}
+.brand p{margin:0; font-size:13px; color:var(--muted)}
+.topbtns{display:flex; gap:8px; flex-wrap:wrap}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line-strong); background:var(--surface); padding:8px 14px; border-radius:var(--r-sm); cursor:pointer; font-weight:600; font-size:14px; white-space:nowrap; text-decoration:none; color:var(--fg)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-fg)}
+.btn.primary:hover{background:var(--accent-strong); border-color:var(--accent-strong)}
+.btn.ghost{background:transparent; border-color:transparent; color:var(--muted)}
+.btn.ghost:hover{color:var(--fg); background:var(--surface-2)}
+.btn.danger{color:var(--owed); border-color:var(--owed)}
+.btn.sm{padding:5px 10px; font-size:13px}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.btn svg{flex:none}
+
+.tabs{display:flex; gap:2px; margin-top:20px; border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none}
+.tab{background:none; border:0; padding:10px 14px; cursor:pointer; color:var(--muted); font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg); border-bottom-color:var(--accent-ink)}
+.tab:hover{color:var(--fg)}
+
+.filters{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--bg); padding-block:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:end; border-bottom:1px solid var(--line)}
+.fld{display:flex; flex-direction:column; gap:4px; min-width:0}
+.fld label{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600}
+.ctl{background:var(--surface); border:1px solid var(--line-strong); border-radius:var(--r-sm); padding:7px 10px; font-size:14px; min-width:0}
+.ctl:focus{border-color:var(--accent-ink)}
+.filters .ctl{max-width:180px}
+.filters .reset{align-self:end}
+
+.banner{margin-top:14px; padding:10px 14px; border-radius:var(--r-sm); background:var(--surface-2); color:var(--muted); font-size:13px}
+
+main{margin-top:20px; display:flex; flex-direction:column; gap:18px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px}
+.sechead{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+
+.strip{display:flex; flex-wrap:wrap; gap:8px 28px; align-items:baseline}
+.strip .big{font-size:22px; font-weight:700}
+.seg{display:inline-flex; background:var(--surface-2); border-radius:var(--r-sm); padding:3px; gap:2px}
+.seg button{border:0; background:none; padding:5px 12px; border-radius:7px; cursor:pointer; font-size:13px; font-weight:600; color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--fg); box-shadow:var(--seg-shadow)}
+.ctrls{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+
+.ledger{display:flex; flex-direction:column}
+.grouphead{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:16px 4px 8px; border-bottom:1px solid var(--line)}
+.grouphead .t{font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.06em}
+.grouphead.ev .t{font-size:15px; color:var(--fg); text-transform:none; letter-spacing:-.01em; display:flex; align-items:center; gap:8px}
+.grouphead .num{font-size:13px; color:var(--muted); font-weight:600}
+.xrow{display:grid; grid-template-columns:minmax(0,1fr) auto auto 28px; gap:12px; align-items:center; padding:12px 4px; border-bottom:1px solid var(--line); cursor:pointer}
+.xrow:hover{background:var(--surface-2)}
+.xmain{display:flex; gap:12px; align-items:center; min-width:0}
+.xdesc{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.xmeta{font-size:13px; color:var(--muted); display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+.xamt{font-size:15px; font-weight:700; text-align:right}
+.chev{color:var(--muted); transition:transform .15s}
+.xrow[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.catdot{width:10px; height:10px; border-radius:3px; flex:none}
+.evtag{display:inline-flex; align-items:center; gap:4px; padding:1px 8px; border-radius:999px; background:var(--surface-2); color:var(--fg); font-size:12px; font-weight:600}
+.xdetail{padding:8px 4px 16px; border-bottom:1px solid var(--line)}
+.shares{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:8px; margin-block:8px 12px}
+.share{display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:var(--r-sm); min-width:0}
+.share .who{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.xactions{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.itemlist{font-size:13px; margin:4px 0 12px; border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden}
+.itemlist div{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px; padding:6px 10px; border-bottom:1px solid var(--line); align-items:center}
+.itemlist div:last-child{border-bottom:0}
+.thumb{height:84px; width:auto; border-radius:8px; border:1px solid var(--line); cursor:zoom-in; display:block; object-fit:cover; max-width:100%}
+
+.pill{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; white-space:nowrap; border:0}
+.pill.owed{background:var(--owed-soft); color:var(--owed)}
+.pill.paid{background:var(--paid-soft); color:var(--paid)}
+.pill.self{background:var(--surface-2); color:var(--muted)}
+button.pill{cursor:pointer}
+button.pill:hover{filter:brightness(.97)}
+.pill .dot{width:6px; height:6px; border-radius:50%; background:currentColor}
+
+.av{width:28px; height:28px; border-radius:50%; display:inline-grid; place-items:center; font-size:11px; font-weight:700; flex:none; letter-spacing:.02em}
+.av.sm{width:20px; height:20px; font-size:9px}
+.avs{display:inline-flex}
+.avs .av{margin-left:-6px; box-shadow:0 0 0 2px var(--surface)}
+.avs .av:first-child{margin-left:0}
+
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr)); gap:18px}
+.pairs{display:flex; flex-direction:column; gap:10px; margin-top:14px}
+.pair{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid var(--line); border-radius:var(--r-sm)}
+.pairwho{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0}
+.arrow{color:var(--muted)}
+.pairamt{font-size:18px; font-weight:700; color:var(--owed)}
+.pairright{display:flex; flex-direction:column; align-items:end; gap:6px}
+.tbl-wrap{overflow-x:auto; margin-top:12px}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600; text-align:right; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap}
+tr.hl td{background:var(--accent-soft)}
+.pos{color:var(--paid)} .neg{color:var(--owed)}
+.namecell{display:flex; align-items:center; gap:8px}
+.hist{display:flex; flex-direction:column; margin-top:10px}
+.hist div{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); gap:12px}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px}
+.kpi .v{font-size:24px; font-weight:700; margin-top:4px}
+.kpi .s{font-size:13px; color:var(--muted)}
+.kpi.owed .v{color:var(--owed)} .kpi.paid .v{color:var(--paid)}
+.chart{width:100%; height:auto; display:block; margin-top:12px}
+.chart .grid{stroke:var(--line); stroke-width:1}
+.chart .axis{fill:var(--muted); font-family:var(--f-body); font-size:11px}
+.chart .bar{fill:var(--accent)}
+.chart .bar:hover{fill:var(--accent-strong)}
+.hbars{display:flex; flex-direction:column; gap:12px; margin-top:14px}
+.hb{display:grid; grid-template-columns:minmax(90px,150px) minmax(0,1fr) auto; gap:10px; align-items:center; font-size:14px}
+.hb .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:8px; min-width:0}
+.hb .nm span.t{overflow:hidden; text-overflow:ellipsis}
+.track{height:10px; background:var(--surface-2); border-radius:5px; overflow:hidden}
+.track.two{height:16px; display:flex; flex-direction:column; gap:2px; background:transparent}
+.track.two span{height:7px; border-radius:4px; display:block}
+.fill{height:100%; border-radius:5px; display:block}
+.legend{display:flex; gap:14px; font-size:12px; color:var(--muted); margin-top:6px; flex-wrap:wrap}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px}
+.toplist{display:flex; flex-direction:column; margin-top:10px}
+.toplist div{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; padding:9px 0; border-bottom:1px solid var(--line)}
+
+/* Events */
+.evgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr)); gap:14px}
+.evcard{border:1px solid var(--line); border-radius:var(--r); padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--surface)}
+.evcard.closed{background:var(--surface-2)}
+.evcard .top2{display:flex; justify-content:space-between; gap:8px; align-items:start}
+.evcard h3{font-size:16px; display:flex; align-items:center; gap:8px; overflow-wrap:anywhere}
+.evcard .tot{font-size:22px; font-weight:700}
+.evstats{display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--muted)}
+.evstats b{color:var(--fg); font-weight:600}
+.evbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:auto}
+
+.mlist{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+.mrow{display:flex; align-items:center; gap:10px}
+.mrow .ctl{flex:1}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:5px 6px 5px 10px; border:1px solid var(--line); border-radius:999px; font-size:13px; background:var(--surface)}
+.chip button{border:0; background:none; cursor:pointer; color:var(--muted); padding:0 4px; font-size:15px; line-height:1}
+.chip button:hover{color:var(--owed)}
+.addrow{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap}
+.addrow .ctl{flex:1; min-width:160px}
+
+.empty{text-align:center; padding:40px 20px}
+.empty h2{margin-bottom:6px}
+.steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); gap:12px; margin:22px auto; max-width:760px; text-align:left}
+.step{padding:14px; border:1px solid var(--line); border-radius:var(--r-sm)}
+.step b{color:var(--accent-ink); display:block; margin-bottom:4px}
+
+/* Modal */
+.overlay{position:fixed; inset:0; background:var(--scrim); z-index:20; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:max(16px, env(safe-area-inset-top,0px)) 16px 32px}
+.modal{background:var(--surface); border-radius:var(--r); width:100%; max-width:620px; box-shadow:var(--shadow); margin-top:3vh}
+.modal header{display:flex; justify-content:space-between; align-items:center; padding:16px 18px; border-bottom:1px solid var(--line)}
+.modal .body{padding:18px; display:flex; flex-direction:column; gap:14px}
+.modal footer{display:flex; justify-content:space-between; gap:8px; padding:14px 18px; border-top:1px solid var(--line); align-items:center; flex-wrap:wrap}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.fld .ctl{width:100%}
+.amtwrap{position:relative}
+.amtwrap > span{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:14px; pointer-events:none}
+.amtwrap .ctl{padding-left:34px; width:100%}
+.parts{display:flex; flex-direction:column; gap:4px}
+.part{display:grid; grid-template-columns:auto minmax(0,1fr) 150px; gap:10px; align-items:center; padding:6px 8px; border-radius:var(--r-sm)}
+.part:hover{background:var(--surface-2)}
+.part input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent-ink)}
+.part .nm{display:flex; gap:8px; align-items:center; min-width:0}
+.part .val{text-align:right}
+.alloc{font-size:13px; padding:8px 10px; border-radius:var(--r-sm); background:var(--surface-2); display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+.alloc.bad{background:var(--owed-soft); color:var(--owed)}
+.alloc.ok{background:var(--paid-soft); color:var(--paid)}
+.err{color:var(--owed); font-size:13px}
+
+/* Scan */
+.scan{border:1.5px dashed var(--line-strong); border-radius:var(--r); padding:14px; display:flex; gap:14px; align-items:center; background:var(--surface-2)}
+.scan.drag{border-color:var(--accent-ink); background:var(--accent-soft)}
+.scan.done{border-style:solid; border-color:var(--line); background:var(--accent-soft)}
+.scan.bad{border-style:solid; border-color:var(--owed); background:var(--owed-soft)}
+.scan .ico{width:44px; height:44px; border-radius:10px; background:var(--surface); display:grid; place-items:center; flex:none; color:var(--accent-ink); border:1px solid var(--line)}
+.scan .txt{flex:1; min-width:0}
+.scan .txt b{display:block}
+.scan img{width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--line); flex:none}
+.scan .acts{display:flex; gap:6px; flex-wrap:wrap}
+.spin{width:16px; height:16px; border:2px solid var(--line-strong); border-top-color:var(--accent-ink); border-radius:50%; animation:spin .8s linear infinite; display:inline-block; vertical-align:-3px; margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pastebox{width:100%; min-height:110px; resize:vertical}
+
+/* Items split */
+.items{display:flex; flex-direction:column; gap:8px}
+.item{border:1px solid var(--line); border-radius:var(--r-sm); padding:8px; display:grid; grid-template-columns:minmax(0,1fr) 130px 30px; gap:8px; align-items:center}
+.item .who{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:4px; align-items:center}
+.item{grid-template-columns:minmax(0,1fr) 130px auto 30px}
+.qty{display:inline-flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; background:var(--glass-strong); height:38px; overflow:hidden}
+.qty button{border:0; background:none; width:30px; height:100%; cursor:pointer; font-size:17px; color:var(--fg)}
+.qty button:hover:not(:disabled){background:var(--surface-2)}
+.qty button:disabled{opacity:.35; cursor:default}
+.qty .qx{color:var(--muted); font-size:13px; padding-left:2px}
+.qty input{width:34px; border:0; background:none; text-align:center; font-weight:700; padding:0; outline-offset:-2px}
+.ltot{margin-left:auto; font-size:13px; color:var(--muted); padding-left:8px; white-space:nowrap}
+.ltot b{color:var(--fg)}
+.wchip{border:1px solid var(--line); background:var(--surface); border-radius:999px; padding:2px 8px 2px 2px; display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer; color:var(--muted)}
+.wchip .av{opacity:.35}
+.wchip[aria-pressed="true"]{border-color:var(--accent-ink); color:var(--fg); background:var(--accent-soft)}
+.wchip[aria-pressed="true"] .av{opacity:1}
+.item .x{border:0; background:none; cursor:pointer; color:var(--muted); font-size:18px}
+.item .x:hover{color:var(--owed)}
+.result{display:flex; flex-wrap:wrap; gap:6px}
+.item.untagged{border-color:var(--gold); background:var(--warn-soft)}
+.charges{display:flex; flex-direction:column; gap:6px}
+.charge{display:grid; grid-template-columns:minmax(0,1fr) 56px 140px 30px; gap:8px; align-items:center}
+.charge .pct{text-align:right}
+.charge .x{border:0; background:none; cursor:pointer; color:var(--muted); font-size:18px}
+.charge .x:hover{color:var(--owed)}
+table.brk{font-size:13px; margin-top:8px}
+table.brk th,table.brk td{padding:7px 8px}
+.itemlist .chg{background:var(--surface-2)}
+.result span{display:inline-flex; gap:6px; align-items:center; font-size:13px; padding:3px 8px 3px 3px; border-radius:999px; background:var(--surface-2)}
+
+.lightbox{position:fixed; inset:0; background:rgba(10,12,14,.85); z-index:40; display:grid; place-items:center; padding:24px; cursor:zoom-out}
+.lightbox img{max-width:100%; max-height:90vh; border-radius:8px}
+
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom,0px)); background:var(--fg); color:var(--bg); padding:10px 14px; border-radius:var(--r-sm); z-index:50; display:flex; gap:12px; align-items:center; font-size:14px; max-width:calc(100% - 32px); box-shadow:var(--shadow)}
+.toast button{background:none; border:0; color:var(--bg); font-weight:700; text-decoration:underline; cursor:pointer}
+.copybox{width:100%; min-height:120px; margin-top:10px}
+
+@media (max-width:640px){
+  .xrow{grid-template-columns:minmax(0,1fr) auto 22px; row-gap:4px}
+  .xrow .xstat{grid-column:1 / 2; grid-row:2}
+  .xrow .xamt{grid-row:1}
+  .filters .ctl{max-width:none}
+  .filters .fld{flex:1 1 140px}
+  .row2{grid-template-columns:1fr}
+  .part{grid-template-columns:auto minmax(0,1fr) 120px}
+  .item{grid-template-columns:minmax(0,1fr) auto 28px}
+  .item > input.ctl{grid-column:1 / -1}
+  .item .amtwrap{grid-column:1 / 2}
+  .charge{grid-template-columns:minmax(0,1fr) 44px 110px 26px}
+  .hb{grid-template-columns:90px minmax(0,1fr) auto}
+  .app{display:block}
+  .side{position:static; height:auto; padding:14px 16px 0; gap:12px; border-right:0; border-bottom:1px solid var(--line); background:var(--bg); overflow:visible}
+  .nav{flex-direction:row; overflow-x:auto; gap:2px; scrollbar-width:none; padding-bottom:8px}
+  .nav-group{display:contents}
+  .nav-h{display:none}
+  .nav-i{width:auto; white-space:nowrap; padding:8px 10px}
+  .nav-i svg{display:none}
+  .nav-i.sub{padding-left:10px; font-weight:600}
+  .main{padding-inline:16px}
+  .pagehead h1{font-size:20px}
+  .owrow{grid-template-columns:minmax(0,1fr) auto}
+  .owrow .btn{grid-column:1 / -1; justify-self:start}
+  .scan{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+
+/* ===== Liquid glass layer: translucent, blurred surfaces over a soft colour field drawn from the theme ===== */
+:root{
+  --surface:rgba(255,255,255,.62); --surface-2:rgba(11,11,15,.045); --line:rgba(11,11,15,.08); --line-strong:rgba(11,11,15,.16); --side:transparent;
+  --glass:rgba(255,255,255,.52); --glass-strong:rgba(255,255,255,.74); --glass-border:rgba(255,255,255,.78);
+  --sheen:linear-gradient(160deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.14) 38%,rgba(255,255,255,.04) 100%);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.3),0 0 0 1px rgba(11,11,15,.05);
+  --glass-shadow:0 10px 36px rgba(40,40,110,.10),0 2px 6px rgba(40,40,110,.05);
+  --blur:blur(26px) saturate(185%); --blur-strong:blur(44px) saturate(190%);
+  --field-a:38%; --field-b:30%;
+  --r:24px; --r-sm:14px;
+}
+:root[data-appearance="dark"],:root[data-appearance="auto"][data-theme="dark"]{
+  --surface:rgba(40,40,52,.48); --surface-2:rgba(255,255,255,.06); --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.17);
+  --glass:rgba(26,26,34,.5); --glass-strong:rgba(30,30,40,.74); --glass-border:rgba(255,255,255,.13);
+  --sheen:linear-gradient(160deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,.03) 40%,rgba(255,255,255,0) 100%);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -1px 0 rgba(255,255,255,.04),0 0 0 1px rgba(0,0,0,.25);
+  --glass-shadow:0 12px 40px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.3);
+  --field-a:30%; --field-b:22%;
+}
+@media (prefers-color-scheme: dark){ :root[data-appearance="auto"]:not([data-theme="light"]){
+  --surface:rgba(40,40,52,.48); --surface-2:rgba(255,255,255,.06); --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.17);
+  --glass:rgba(26,26,34,.5); --glass-strong:rgba(30,30,40,.74); --glass-border:rgba(255,255,255,.13);
+  --sheen:linear-gradient(160deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,.03) 40%,rgba(255,255,255,0) 100%);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -1px 0 rgba(255,255,255,.04),0 0 0 1px rgba(0,0,0,.25);
+  --glass-shadow:0 12px 40px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.3);
+  --field-a:30%; --field-b:22%;
+}}
+/* colour field behind the glass */
+body::before{content:""; position:fixed; inset:-12%; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(38% 46% at 10% 14%, color-mix(in srgb,var(--accent) var(--field-a),transparent), transparent 70%),
+    radial-gradient(34% 42% at 92% 10%, color-mix(in srgb,var(--p1) var(--field-b),transparent), transparent 70%),
+    radial-gradient(42% 50% at 84% 82%, color-mix(in srgb,var(--p3) var(--field-a),transparent), transparent 70%),
+    radial-gradient(40% 48% at 18% 92%, color-mix(in srgb,var(--p4) var(--field-a),transparent), transparent 70%),
+    radial-gradient(30% 36% at 52% 48%, color-mix(in srgb,var(--p5) var(--field-b),transparent), transparent 70%);
+  filter:blur(24px); animation:drift 38s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(2.5%,-2%,0) scale(1.06) rotate(2deg)}}
+
+/* glass panels */
+.card,.kpi,.evcard,.side,.filters,.modal,.toast,.scan{-webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur)}
+.card,.kpi,.evcard{background:var(--sheen),var(--glass); border:1px solid var(--glass-border); box-shadow:var(--glass-hi),var(--glass-shadow); border-radius:var(--r)}
+.evcard.closed{background:var(--sheen),var(--surface-2)}
+.app{grid-template-columns:262px minmax(0,1fr)}
+.side{margin:14px 0 14px 14px; top:14px; height:calc(100vh - 28px); border-radius:28px; border:1px solid var(--glass-border); background:var(--sheen),var(--glass); box-shadow:var(--glass-hi),var(--glass-shadow); padding:22px 14px}
+.filters{top:calc(env(safe-area-inset-top,0px) + 10px); margin-top:4px; padding:10px 14px; border:1px solid var(--glass-border); border-radius:22px; background:var(--sheen),var(--glass-strong); box-shadow:var(--glass-hi),var(--glass-shadow)}
+.main{padding-block:26px 80px}
+.mark{border-radius:14px; background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0) 60%),var(--accent); box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+.nav-i{border-radius:14px}
+.nav-i:hover{background:var(--surface-2)}
+.nav-i[aria-current="page"]{background:linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 70%),var(--accent); box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px color-mix(in srgb,var(--accent) 32%,transparent)}
+.nav-group{border-top-color:var(--line)}
+
+/* controls */
+.btn{border-radius:999px; background:var(--sheen),var(--glass-strong); border:1px solid var(--glass-border); box-shadow:var(--glass-hi),0 2px 8px rgba(20,20,60,.06); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur)}
+.btn:hover{background:var(--sheen),var(--surface)}
+.btn.primary{background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 65%),var(--accent); border-color:color-mix(in srgb,var(--accent) 60%,white); box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 20px color-mix(in srgb,var(--accent) 34%,transparent)}
+.btn.primary:hover{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 65%),var(--accent-strong); border-color:var(--accent-strong)}
+.btn.ghost{background:transparent; border-color:transparent; box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.danger{background:var(--sheen),var(--owed-soft)}
+.ctl{border-radius:12px; background:var(--glass-strong); border-color:var(--line-strong); box-shadow:inset 0 1px 2px rgba(11,11,15,.05)}
+.seg{border-radius:999px; padding:3px; background:var(--surface-2); box-shadow:inset 0 1px 2px rgba(11,11,15,.06)}
+.seg button{border-radius:999px}
+.seg button[aria-pressed="true"]{background:var(--sheen),var(--glass-strong); box-shadow:var(--glass-hi),0 2px 8px rgba(20,20,60,.10)}
+.acc-tog{border-radius:999px; background:var(--sheen),var(--glass-strong); box-shadow:var(--glass-hi)}
+.tile{border-radius:18px; background:var(--sheen),var(--glass)}
+.pair,.share,.item,.step{border-radius:var(--r-sm); background:var(--sheen),var(--surface); border-color:var(--glass-border); box-shadow:var(--glass-hi)}
+.item.untagged{background:var(--sheen),var(--warn-soft); border-color:var(--gold)}
+.chip,.wchip{background:var(--sheen),var(--glass-strong); border-color:var(--glass-border)}
+.wchip[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent-ink)}
+.itemlist{border-color:var(--glass-border); border-radius:var(--r-sm)}
+.scan{border-radius:var(--r); background:var(--sheen),var(--glass)}
+.alloc{border-radius:12px}
+.thumb{border-radius:12px}
+.track{background:var(--surface-2)}
+.chart .bar{rx:4px}
+
+/* overlays */
+.overlay{background:var(--scrim); -webkit-backdrop-filter:blur(8px) saturate(120%); backdrop-filter:blur(8px) saturate(120%)}
+.modal{border-radius:28px; border:1px solid var(--glass-border); background:var(--sheen),var(--glass-strong); box-shadow:var(--glass-hi),var(--shadow); -webkit-backdrop-filter:var(--blur-strong); backdrop-filter:var(--blur-strong)}
+.modal header,.modal footer{border-color:var(--line)}
+.toast{border-radius:999px; padding:10px 18px; background:color-mix(in srgb,var(--fg) 80%,transparent); box-shadow:inset 0 1px 0 rgba(255,255,255,.18),var(--shadow)}
+
+/* brand coin: always white with a blue Rp, independent of theme */
+.mark{width:44px; height:44px; border-radius:13px; display:grid; place-items:center; padding:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 60%),#3939FF;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 16px rgba(57,57,255,.35)}
+.mark .coin{width:32px; height:32px; display:block; filter:drop-shadow(0 1.5px 2px rgba(10,10,80,.35))}
+.gname{font-size:17px; letter-spacing:-.02em}
+@media (max-width:640px){
+  .side{position:static; margin:10px 10px 0; height:auto; border-radius:22px; padding:12px 12px 4px}
+  .filters{border-radius:18px}
+}
+@media (prefers-reduced-motion: reduce){ body::before{animation:none} }
+
+/* ===== standalone (GitHub Pages) additions ===== */
+html,body{margin:0; min-height:100%}
+img{max-width:100%}
+.syncpill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; border:0; background:var(--surface-2); color:var(--muted); align-self:flex-start; cursor:pointer; font-family:inherit}
+.syncpill::before{content:""; width:7px; height:7px; border-radius:50%; background:currentColor}
+.syncpill.ok{color:var(--paid); background:var(--paid-soft)}
+.syncpill.busy::before{animation:pulse 1.2s ease-in-out infinite}
+.syncpill.warn{color:var(--gold); background:var(--warn-soft)}
+.syncpill.bad{color:var(--owed); background:var(--owed-soft)}
+@keyframes pulse{50%{opacity:.25}}
+.lock{position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:16px; background:var(--scrim); -webkit-backdrop-filter:blur(30px) saturate(160%); backdrop-filter:blur(30px) saturate(160%)}
+.lockcard{max-width:400px; width:100%; text-align:center; display:flex; flex-direction:column; gap:14px; align-items:center; padding:30px 26px; border-radius:30px; background:var(--sheen),var(--glass-strong); border:1px solid var(--glass-border); box-shadow:var(--glass-hi),var(--shadow)}
+.lockcard h1{font-size:26px; font-weight:800}
+.lockcard p{margin:0}
+.lockcard .fld{width:100%}
+.mark.big{width:68px; height:68px; border-radius:20px}
+.mark.big .coin{width:48px; height:48px}
+.thumb.missing{min-width:84px; background:var(--surface-2)}
+@media (prefers-reduced-motion: reduce){ .syncpill.busy::before{animation:none} }
+</style>
+<script src="assets/config.js"></script>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand">
+    <div class="mark"><svg class="coin" viewBox="0 0 48 48" aria-hidden="true">
+      <defs><radialGradient id="coinFace" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#F3F5FA"/><stop offset="1" stop-color="#DDE2EC"/></radialGradient></defs>
+      <circle cx="24" cy="24" r="22.5" fill="url(#coinFace)" stroke="#C9D0DD" stroke-width="1"/>
+      <circle cx="24" cy="24" r="18.5" fill="none" stroke="#3939FF" stroke-opacity=".28" stroke-width="1.2" stroke-dasharray="1.6 2.2"/>
+      <text x="24" y="24.5" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="800" font-size="15" letter-spacing="-.5" fill="#3939FF">Rp</text>
+    </svg></div>
+    <div style="min-width:0"><div class="gname">Wang-Kicau</div><p id="gsub">Shared bills in Rupiah</p></div>
+  </div>
+  <button class="syncpill busy" id="syncpill" data-act="tab" data-id="sync">Connecting…</button>
+  <nav class="nav" id="nav" aria-label="Sections">
+    <button class="nav-i" data-act="tab" data-id="dashboard"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dashboard</span></button>
+    <button class="nav-i" data-act="tab" data-id="expenses"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Expenses</span></button>
+    <button class="nav-i" data-act="tab" data-id="settle"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Split &amp; settle</span></button>
+    <button class="nav-i" data-act="tab" data-id="events"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Events</span></button>
+    <div class="nav-group">
+      <div class="nav-h"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Configuration</span></div>
+      <button class="nav-i sub" data-act="tab" data-id="members"><span>Members</span></button>
+      <button class="nav-i sub" data-act="tab" data-id="categories"><span>Categories</span></button>
+      <button class="nav-i sub" data-act="tab" data-id="appearance"><span>Appearance</span></button>
+      <button class="nav-i sub" data-act="tab" data-id="sync"><span>Sync &amp; backup</span></button>
+    </div>
+  </nav>
+</aside>
+<div class="main">
+  <header class="pagehead">
+    <div><h1 id="ptitle">Dashboard</h1><p id="psub" class="small muted"></p></div>
+    <div class="topbtns">
+      <button class="btn" data-act="scan-new" id="btn-scan" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 011-1h2M11 2h2a1 1 0 011 1v2M14 11v2a1 1 0 01-1 1h-2M5 14H3a1 1 0 01-1-1v-2M5 6h6M5 8h6M5 10h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Scan bill</button>
+      <button class="btn primary" data-act="add" id="btn-add">+ Add expense</button>
+    </div>
+  </header>
+
+  <section class="filters" id="filters" aria-label="Filters">
+    <div class="fld" id="fld-preset"><label for="flt-preset">Dates</label>
+      <select class="ctl" id="flt-preset">
+        <option value="all">All time</option>
+        <option value="month">This month</option>
+        <option value="lastmonth">Last month</option>
+        <option value="30">Last 30 days</option>
+        <option value="year">This year</option>
+        <option value="custom">Custom range</option>
+      </select></div>
+    <div class="fld" id="fld-from" hidden><label for="flt-from">From</label><input class="ctl" type="date" id="flt-from"></div>
+    <div class="fld" id="fld-to" hidden><label for="flt-to">To</label><input class="ctl" type="date" id="flt-to"></div>
+    <div class="fld" id="fld-event"><label for="flt-event">Event</label><select class="ctl" id="flt-event"></select></div>
+    <div class="fld"><label for="flt-cat">Category</label><select class="ctl" id="flt-cat"></select></div>
+    <div class="fld"><label for="flt-person">Person</label><select class="ctl" id="flt-person"></select></div>
+    <button class="btn ghost sm reset" data-act="reset-filters" id="btn-reset">Clear filters</button>
+  </section>
+
+  <div class="banner" id="banner" hidden></div>
+  <main id="view"></main>
+</div>
+</div>
+<div id="modal-root"></div>
+<div id="lightbox-root"></div>
+<div id="toast-root"></div>
+<div id="lock" class="lock" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const DEFAULT_CATS=["Food & Drinks","Groceries","Transport","Rent & Bills","Travel","Entertainment","Shopping","Health","Other"];
+const MAX_MEMBERS=10;
+const S={db:null,offline:false,readOnly:false,sample:null,assets:null,loaded:{m:false,e:false,v:false},
+  members:[],expenses:[],events:[],config:{groupName:"",categories:DEFAULT_CATS.slice()},
+  tab:"dashboard",trend:"week",acc:new Set(),f:{preset:"month",from:"",to:"",cat:"",person:"",event:""},status:"all",groupBy:"date",
+  open:new Set(),confirmDel:null,form:null,evform:null};
+
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=new Intl.NumberFormat("id-ID");
+const cf=new Intl.NumberFormat("id-ID",{notation:"compact",maximumFractionDigits:1});
+const rp=n=>"Rp "+nf.format(Math.round(n||0));
+const rpc=n=>n>=1e6||n<=-1e6?"Rp "+cf.format(n):rp(n);
+const digits=s=>parseInt(String(s).replace(/\D/g,""),10)||0;
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>ymd(new Date());
+const isDate=s=>typeof s==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(new Date(s+"T00:00:00"));
+const parseD=s=>new Date(s+"T00:00:00");
+const MON3=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAY3=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const dm=d=>d.getDate()+" "+MON3[d.getMonth()];
+const fmtDay=s=>{const d=parseD(s);return DAY3[d.getDay()]+", "+dm(d)+" "+d.getFullYear();};
+const fmtShort=s=>{const d=parseD(s);return dm(d)+" "+d.getFullYear();};
+function fmtSpan(a,b){if(!a&&!b)return "";if(!b||a===b)return fmtShort(a||b);if(!a)return "until "+fmtShort(b);
+  const A=parseD(a),B=parseD(b);
+  if(A.getFullYear()===B.getFullYear()&&A.getMonth()===B.getMonth())return A.getDate()+"–"+fmtShort(b);
+  if(A.getFullYear()===B.getFullYear())return dm(A)+" – "+fmtShort(b);
+  return fmtShort(a)+" – "+fmtShort(b);}
+const ls={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const saved=ls.get("get-filters");
+if(saved&&typeof saved==="object"){Object.assign(S.f,saved.f||{});if(saved.tab)S.tab=saved.tab;if(saved.groupBy)S.groupBy=saved.groupBy;if(saved.trend)S.trend=saved.trend;if(Array.isArray(saved.acc))S.acc=new Set(saved.acc);}
+/* appearance: mode is per device, colour theme is shared in the group config */
+const ACCENTS=[["electric","Electric","#3939FF","#7A7AFF"],["blue","Blue","#0044FF","#5A86FF"],["daredevil","Dare Devil","#FF5B22","#FF6B35"],["redorange","Red-Orange","#FF4502","#FF5A1F"],["gold","Gold","#F2BB05","#F2BB05"],["royal","Royal","#DBB8FF","#DBB8FF"],["arctic","Arctic","#AEE6ED","#AEE6ED"],["lime","Bitter Lime","#C2FF01","#C2FF01"],["black","Black","#0B0B0F","#F2F2F5"]];
+S.mode=(()=>{const m=ls.get("get-mode");return ["light","dark","auto"].includes(m)?m:"light";})();
+const darkMQ=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
+function isDark(){const r=document.documentElement;if(S.mode==="dark")return true;if(S.mode==="light")return false;
+  if(r.getAttribute("data-theme")==="dark")return true;if(r.getAttribute("data-theme")==="light")return false;return !!(darkMQ&&darkMQ.matches);}
+function applyAppearance(){const r=document.documentElement;r.setAttribute("data-appearance",S.mode);
+  const a=S.config.colorTheme;r.setAttribute("data-accent",ACCENTS.some(x=>x[0]===a)?a:"electric");}
+applyAppearance();
+try{darkMQ&&darkMQ.addEventListener("change",()=>{if(S.mode==="auto")renderAll();});}catch(e){}
+try{new MutationObserver(()=>{if(S.mode==="auto")renderAll();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});}catch(e){}
+const persist=()=>ls.set("get-filters",{f:S.f,tab:S.tab,groupBy:S.groupBy,trend:S.trend,acc:[...S.acc]});
+
+const cats=()=>{const c=S.config.categories;return Array.isArray(c)&&c.length?c:DEFAULT_CATS};
+const catColor=c=>{const i=cats().indexOf(c);return "var(--p"+((i<0?9:i)%10)+")"};
+const mem=id=>S.members.find(m=>m.id===id);
+const mname=id=>mem(id)?.name||"Removed member";
+/* member colours: collected from the group's reference palettes, ordered by hue (reds → yellows → greens → blues → purples → dark) */
+const MCOLORS=[["coral","Coral Red","#FF374B"],["tomato","Tomato Red","#E22929"],["rust","Rust","#B83200"],["red","Red","#EB4E1B"],["redorange","Red-Orange","#FF4502"],["daredevil","Dare Devil","#FF5B22"],
+  ["tangerine","Tangerine","#FF7B09"],["gold","Gold","#F2BB05"],["sunshine","Sunshine","#EEC626"],["sunglow","Sunglow","#FFD741"],["lemon","Lemon","#FFDF24"],["bitterlime","Bitter Lime","#C2FF01"],
+  ["lime","Lime Green","#A4E136"],["olive","Olive","#5F7F00"],["fresh","Fresh Green","#38AD02"],["grass","Grass","#0B9D4A"],["teal","Teal","#1F8796"],["arctic","Arctic","#AEE6ED"],
+  ["sky","Sky Blue","#4196FF"],["lightblue","Light Blue","#367EC0"],["river","River","#3F6BB4"],["blue","Blue","#0044FF"],["electric","Electric","#3939FF"],["royalblue","Royal Blue","#0A1B9B"],
+  ["catalina","Catalina Blue","#061175"],["deepblue","Deep Blue","#192850"],["violet","Violet","#7A3FE0"],["mauve","Mauve","#DCB8FF"],["panther","Panther","#1F2227"]];
+const LEGACY_MC=["electric","daredevil","gold","mauve","arctic","bitterlime","panther","blue","rust","teal","violet","olive"];
+const STARTER_MC=["electric","daredevil","grass","gold","mauve","sky","coral","teal","tangerine","violet"];
+const hexRgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lum=h=>{const [r,g,b]=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;};
+const mix=(h,t,a)=>"#"+hexRgb(h).map((v,i)=>Math.round(v+(hexRgb(t)[i]-v)*a).toString(16).padStart(2,"0")).join("");
+const mKey=m=>m?(MCOLORS.some(c=>c[0]===m.colorKey)?m.colorKey:LEGACY_MC[((m.color??9)%12+12)%12]):"teal";
+function mcPaint(key){const c=(MCOLORS.find(x=>x[0]===key)||MCOLORS[16])[2];
+  const bg=isDark()&&lum(c)<.06?mix(c,"#FFFFFF",.42):c; // lift very dark colours so they read on dark glass
+  return {bg,fg:lum(bg)>.36?"#0B0B0F":"#FFFFFF"};}
+const mcolor=id=>mcPaint(mKey(mem(id))).bg;
+const initials=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase()||"?";
+const mfg=id=>mcPaint(mKey(mem(id))).fg;
+const av=(id,cls="")=>`<span class="av ${cls}" style="background:${mcolor(id)};color:${mfg(id)}" title="${esc(mname(id))}">${esc(initials(mname(id)))}</span>`;
+const evt=id=>id?S.events.find(e=>e.id===id):null;
+const evColor=id=>"var(--p"+((evt(id)?.color??9)%10)+")";
+const evName=id=>evt(id)?.name||"No event";
+const sortedEvents=()=>S.events.slice().sort((a,b)=>(!!a.closed-!!b.closed)||(b.start||"").localeCompare(a.start||"")||(b.createdAt||0)-(a.createdAt||0));
+const ico={
+  scan:`<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v14a1 1 0 01-1 1H6a1 1 0 01-1-1V3a1 1 0 011-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 2v6h6M8.5 12h7M8.5 15.5h7M8.5 19h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  flag:`<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 11V1.5h6l-1.2 2.2 1.2 2.3h-6" fill="currentColor"/></svg>`
+};
+
+/* ---------- filters ---------- */
+function range(){
+  const f=S.f,n=new Date();let from="",to="";
+  if(f.preset==="month"){from=ymd(new Date(n.getFullYear(),n.getMonth(),1));to=ymd(new Date(n.getFullYear(),n.getMonth()+1,0));}
+  else if(f.preset==="lastmonth"){from=ymd(new Date(n.getFullYear(),n.getMonth()-1,1));to=ymd(new Date(n.getFullYear(),n.getMonth(),0));}
+  else if(f.preset==="30"){const a=new Date(n);a.setDate(a.getDate()-29);from=ymd(a);to=ymd(n);}
+  else if(f.preset==="year"){from=n.getFullYear()+"-01-01";to=n.getFullYear()+"-12-31";}
+  else if(f.preset==="custom"){from=f.from||"";to=f.to||"";}
+  return {from,to};
+}
+function rangeLabel(){
+  const {from,to}=range();const p=S.f.preset;
+  if(p==="all"||(!from&&!to))return "All time";
+  if(p==="month"||p==="lastmonth")return parseD(from).toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+  return (from?fmtShort(from):"…")+" – "+(to?fmtShort(to):"…");
+}
+function ctxLabel(){const parts=[];if(S.f.event)parts.push(S.f.event==="_none"?"No event":evName(S.f.event));parts.push(rangeLabel());if(S.f.cat)parts.push(S.f.cat);return parts.join(" · ");}
+const filtersActive=()=>S.f.preset!=="all"||S.f.cat||S.f.person||S.f.event;
+function shareList(x){return Object.entries(x.shares||{}).map(([mid,s])=>({mid,amount:+s.amount||0,paid:!!s.paid||mid===x.paidBy,paidAt:s.paidAt||""}));}
+function owedOf(x){return shareList(x).filter(s=>s.mid!==x.paidBy&&!s.paid).reduce((a,s)=>a+s.amount,0);}
+function involves(x,p){return x.paidBy===p||!!(x.shares&&x.shares[p]);}
+const evOf=x=>evt(x.eventId)?x.eventId:"";
+function filt(o={}){
+  o=Object.assign({date:true,event:true,cat:true,person:true},o);
+  const {from,to}=range();const f=S.f;
+  return S.expenses.filter(x=>(!o.date||((!from||x.date>=from)&&(!to||x.date<=to)))
+    &&(!o.cat||!f.cat||x.cat===f.cat)
+    &&(!o.event||!f.event||(f.event==="_none"?!evOf(x):evOf(x)===f.event))
+    &&(!o.person||!f.person||involves(x,f.person)));
+}
+const baseList=()=>filt({person:false});
+const fullList=()=>filt();
+const sortX=l=>l.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt||0)-(a.createdAt||0));
+function debts(list){const o=[];list.forEach(x=>shareList(x).forEach(s=>{if(s.mid!==x.paidBy&&!s.paid&&s.amount>0)o.push({from:s.mid,to:x.paidBy,amount:s.amount,eid:x.id});}));return o;}
+function pairs(list){
+  const m=new Map();
+  debts(list).forEach(d=>{const [a,b]=[d.from,d.to].sort();const k=a+"|"+b;let p=m.get(k);if(!p){p={a,b,ab:0,ba:0,ids:new Set()};m.set(k,p);}
+    if(d.from===a)p.ab+=d.amount;else p.ba+=d.amount;p.ids.add(d.eid);});
+  let r=[...m.values()].map(p=>{const net=p.ab-p.ba;return{a:p.a,b:p.b,from:net>=0?p.a:p.b,to:net>=0?p.b:p.a,amount:Math.abs(net),n:p.ids.size,offset:Math.min(p.ab,p.ba)};});
+  if(S.f.person)r=r.filter(p=>p.a===S.f.person||p.b===S.f.person);
+  return r.sort((x,y)=>y.amount-x.amount);
+}
+function balances(list){
+  const B={};const g=id=>B[id]||(B[id]={paid:0,share:0,owes:0,gets:0});S.members.forEach(m=>g(m.id));
+  list.forEach(x=>{g(x.paidBy).paid+=+x.amount||0;shareList(x).forEach(s=>{g(s.mid).share+=s.amount;if(s.mid!==x.paidBy&&!s.paid){g(s.mid).owes+=s.amount;g(x.paidBy).gets+=s.amount;}});});
+  return B;
+}
+const amountFor=(x,p)=>p?(+x.shares?.[p]?.amount||0):(+x.amount||0);
+
+/* ---------- GitHub storage: one JSON file in a private repo, merged record by record ---------- */
+const CFG=Object.assign({owner:"",repo:"",branch:"main",path:"data.json",photos:"photos",lock:null},window.WK_CONFIG||{});
+const REPO_ID=CFG.owner+"/"+CFG.repo;
+const TOKEN_KEY="wk-token:"+REPO_ID, CACHE_KEY="wk-cache:"+REPO_ID;
+const COLS=["members","expenses","events"];
+const emptyData=()=>({version:1,app:"Wang-Kicau",members:{},expenses:{},events:{},config:{},deleted:{}});
+function normalizeData(d){d=d&&typeof d==="object"?d:{};const o=emptyData();COLS.forEach(c=>o[c]=d[c]&&typeof d[c]==="object"?d[c]:{});o.config=d.config||{};o.deleted=d.deleted||{};return o;}
+/* newest edit to each record wins; deletions are remembered as tombstones */
+function mergeData(a,b){
+  a=normalizeData(a);b=normalizeData(b);const out=emptyData();
+  const del=Object.assign({},a.deleted);Object.entries(b.deleted).forEach(([k,t])=>{del[k]=Math.max(del[k]||0,+t||0);});
+  COLS.forEach(col=>{const A=a[col],B=b[col];new Set([...Object.keys(A),...Object.keys(B)]).forEach(id=>{
+    const ra=A[id],rb=B[id];const r=!ra?rb:!rb?ra:((+rb._u||0)>=(+ra._u||0)?rb:ra);
+    const d=del[col+"/"+id];if(d&&d>=(+r._u||0))return;out[col][id]=r;});});
+  out.config=(+b.config._u||0)>=(+a.config._u||0)?b.config:a.config;
+  out.deleted=del;return out;
+}
+const G={token:ls.get(TOKEN_KEY)||"",data:emptyData(),sha:null,etag:null,dirty:false,pushing:false,again:false,timer:null,
+  status:"idle",msg:"",lastSync:0,pendingRender:false};
+(()=>{const c=ls.get(CACHE_KEY);if(c&&c.data){G.data=normalizeData(c.data);G.sha=c.sha||null;G.dirty=!!c.dirty;G.lastSync=c.lastSync||0;}})();
+function saveCache(){ls.set(CACHE_KEY,{data:G.data,sha:G.sha,dirty:G.dirty,lastSync:G.lastSync});}
+function rebuild(){
+  const arr=col=>Object.entries(G.data[col]).map(([id,v])=>Object.assign({},v,{id}));
+  S.members=arr("members").filter(m=>m.name).sort((a,b)=>(a.color??0)-(b.color??0)||(a.createdAt||0)-(b.createdAt||0));
+  S.expenses=arr("expenses").filter(x=>x.date&&x.paidBy);
+  S.events=arr("events").filter(x=>x.name);
+  const c=Object.assign({},G.data.config);delete c._u;
+  S.config=Object.assign({groupName:"",categories:DEFAULT_CATS.slice()},c);
+  S.loaded={m:true,e:true,v:true};
+}
+const strip=d=>{const o=Object.assign({},d);delete o.id;return o;};
+function touch(){G.dirty=true;saveCache();rebuild();renderAll();schedulePush();}
+async function put(col,id,data){G.data[col][id]=Object.assign(strip(data),{_u:Date.now()});delete G.data.deleted[col+"/"+id];touch();return true;}
+async function patch(col,id,data){G.data[col][id]=Object.assign({},G.data[col][id]||{},strip(data),{_u:Date.now()});touch();return true;}
+async function remove(col,id){delete G.data[col][id];G.data.deleted[col+"/"+id]=Date.now();touch();return true;}
+async function saveConfig(data){G.data.config=Object.assign({},G.data.config,data,{_u:Date.now()});touch();}
+
+/* GitHub REST helpers */
+const encPath=p=>String(p).split("/").map(encodeURIComponent).join("/");
+const b64enc=str=>{const bytes=new TextEncoder().encode(str);let bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin);};
+const b64dec=b64=>new TextDecoder().decode(Uint8Array.from(atob(String(b64).replace(/\s/g,"")),c=>c.charCodeAt(0)));
+const b64bytes=b64=>Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+const blobB64=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(blob);});
+function api(path,opts={},token=G.token){
+  return fetch(`https://api.github.com/repos/${encPath(CFG.owner)}/${encPath(CFG.repo)}${path?"/"+path:""}`,Object.assign({cache:"no-store"},opts,{
+    headers:Object.assign({Authorization:"Bearer "+token,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},opts.headers||{})}));
+}
+async function httpErr(r){let m="";try{m=(await r.json()).message||"";}catch(e){}
+  const e=new Error(m||("HTTP "+r.status));e.status=r.status;
+  e.friendly=r.status===401?"The group's access key was rejected or has expired. Ask the group owner to renew it.":
+    r.status===404?"The data repo wasn't found. Ask the group owner to check the setup.":
+    r.status===403&&/rate limit/i.test(m)?"GitHub's hourly limit was reached. Changes are kept on this device and will sync shortly.":
+    r.status===403?"The access key can't write to the data repo. Ask the group owner to check its permissions.":
+    "GitHub returned an error ("+r.status+"). Changes are kept on this device.";
+  return e;}
+async function fetchRemote(useEtag){
+  const q=`contents/${encPath(CFG.path)}?ref=${encodeURIComponent(CFG.branch)}`;
+  const r=await api(q,{headers:useEtag&&G.etag?{"If-None-Match":G.etag}:{}});
+  if(r.status===304)return {unchanged:true};
+  if(r.status===404)return {data:null,sha:null}; // file not created yet: the first save creates it
+  if(!r.ok)throw await httpErr(r);
+  const j=await r.json();G.etag=r.headers.get("ETag")||null;
+  let text="";
+  if(j.encoding==="base64"&&j.content)text=b64dec(j.content);
+  else{const rr=await api(q,{headers:{Accept:"application/vnd.github.raw+json"}});if(!rr.ok)throw await httpErr(rr);text=await rr.text();}
+  return {data:text.trim()?JSON.parse(text):null,sha:j.sha};
+}
+async function putRemote(data,sha){
+  const body={message:"Update Wang-Kicau ledger",content:b64enc(JSON.stringify(data,null,1)),branch:CFG.branch};if(sha)body.sha=sha;
+  const r=await api(`contents/${encPath(CFG.path)}`,{method:"PUT",body:JSON.stringify(body)});
+  if(r.ok){const j=await r.json();return {ok:true,sha:j.content&&j.content.sha};}
+  if(r.status===409||r.status===422)return {ok:false,conflict:true};
+  throw await httpErr(r);
+}
+function applyRemote(merged){
+  const before=JSON.stringify(G.data);G.data=merged;
+  if(JSON.stringify(merged)!==before){rebuild();safeRender();}
+}
+function safeRender(){const a=document.activeElement;
+  if(a&&a.closest&&a.closest("#view")&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){G.pendingRender=true;return;}renderAll();}
+document.addEventListener("focusout",()=>{if(G.pendingRender){setTimeout(()=>{const a=document.activeElement;if(!(a&&a.closest&&a.closest("#view")&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))){G.pendingRender=false;renderAll();}},0);}});
+function schedulePush(){clearTimeout(G.timer);setSync("pending");G.timer=setTimeout(push,1200);}
+async function push(){
+  if(!G.token)return;
+  if(G.pushing){G.again=true;return;}
+  G.pushing=true;setSync("saving");
+  try{
+    for(let attempt=0;attempt<5;attempt++){
+      const remote=await fetchRemote(false);
+      const merged=mergeData(remote.data,G.data);
+      applyRemote(merged);
+      const r=await putRemote(merged,remote.sha);
+      if(r.ok){G.sha=r.sha;G.dirty=false;G.lastSync=Date.now();saveCache();setSync("ok");break;}
+      await new Promise(res=>setTimeout(res,400+Math.random()*600));
+      if(attempt===4)throw Object.assign(new Error("conflict"),{friendly:"Someone else was saving at the same moment. Retrying shortly."});
+    }
+  }catch(e){console.warn(e);setSync(navigator.onLine===false?"offline":"error",e.friendly||"Couldn't reach GitHub. Changes are kept on this device.");if(e.status===401)lockDevice(true);}
+  finally{G.pushing=false;if(G.again){G.again=false;push();}}
+}
+async function pull(){
+  if(!G.token||G.pushing)return;
+  try{
+    const remote=await fetchRemote(true);
+    if(remote.unchanged){G.lastSync=Date.now();saveCache();if(!G.dirty)setSync("ok");return;}
+    G.sha=remote.sha;applyRemote(mergeData(remote.data,G.data));G.lastSync=Date.now();saveCache();
+    if(G.dirty)push();else setSync("ok");
+  }catch(e){console.warn(e);setSync(navigator.onLine===false?"offline":"error",e.friendly||"Couldn't reach GitHub.");if(e.status===401)lockDevice(true);}
+}
+function ago(t){if(!t)return "never";const s=Math.round((Date.now()-t)/1000);if(s<10)return "just now";if(s<60)return s+"s ago";const m=Math.round(s/60);if(m<60)return m+" min ago";const h=Math.round(m/60);if(h<24)return h+" h ago";return fmtShort(ymd(new Date(t)));}
+function setSync(st,msg){G.status=st;if(msg!=null)G.msg=msg;else if(st==="ok")G.msg="";renderSyncPill();}
+function renderSyncPill(){
+  const el=$("#syncpill");if(!el)return;
+  const map={ok:["ok","Synced "+ago(G.lastSync)],saving:["busy","Saving…"],pending:["busy","Saving…"],offline:["warn","Offline · will sync"],error:["bad","Sync problem"],idle:["busy","Connecting…"],locked:["warn","Locked"]};
+  const [cls,txt]=map[G.status]||map.idle;el.className="syncpill "+cls;el.textContent=txt;el.title=G.msg||"";
+  const sp=$("#sync-status");if(sp){sp.className="syncpill "+cls;sp.textContent=txt;}
+  const sm=$("#sync-msg");if(sm)sm.textContent=G.msg||"";
+}
+setInterval(()=>{if(G.status==="ok")renderSyncPill();},20000);
+
+/* ---------- group passphrase lock ---------- */
+async function deriveKey(pass,salt,iter){
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);}
+async function unlockToken(pass){
+  const L=CFG.lock;const key=await deriveKey(pass.trim().normalize("NFC"),b64bytes(L.salt),L.iter||310000);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64bytes(L.iv)},key,b64bytes(L.data));return new TextDecoder().decode(pt);}
+function showLock(msg){
+  const el=$("#lock");el.hidden=false;document.body.classList.add("locked");
+  const ready=CFG.owner&&CFG.repo&&CFG.lock&&CFG.lock.data;
+  el.innerHTML=`<form class="lockcard" id="lock-form" autocomplete="off">
+    <div class="mark big">${$(".mark").innerHTML}</div>
+    <h1>Wang-Kicau</h1>
+    ${ready?`<p class="muted">Enter the group passphrase to open the shared ledger. You only need to do this once on each device.</p>
+      <div class="fld" style="text-align:left"><label for="lock-pass">Group passphrase</label><input class="ctl" id="lock-pass" type="password" autocomplete="current-password" autofocus></div>
+      <div class="err" id="lock-err" ${msg?"":"hidden"}>${esc(msg||"")}</div>
+      <button class="btn primary" type="submit" id="lock-go" style="width:100%">Unlock</button>
+      <p class="small muted" style="margin:0">Don't have it? Ask whoever set up the group.</p>`
+    :`<p class="muted">This copy of Wang-Kicau isn't connected to a data repo yet. The group owner needs to open <b>setup.html</b> and paste the result into <b>assets/config.js</b> (see the README).</p>`}
+  </form>`;
+  setTimeout(()=>$("#lock-pass")?.focus(),50);
+}
+function hideLock(){const el=$("#lock");el.hidden=true;el.innerHTML="";document.body.classList.remove("locked");}
+async function tryUnlock(){
+  const pass=$("#lock-pass").value;const err=$("#lock-err");const btn=$("#lock-go");
+  if(!pass.trim()){err.hidden=false;err.textContent="Type the passphrase first.";return;}
+  btn.disabled=true;btn.textContent="Unlocking…";
+  let token;
+  try{token=await unlockToken(pass);}catch(e){btn.disabled=false;btn.textContent="Unlock";err.hidden=false;err.textContent="That passphrase doesn't match. Check the spelling, spaces and capital letters.";return;}
+  try{const r=await api("",{},token);if(!r.ok)throw await httpErr(r);}
+  catch(e){btn.disabled=false;btn.textContent="Unlock";err.hidden=false;err.textContent=e.friendly||"Couldn't reach GitHub. Check your connection and try again.";return;}
+  G.token=token;ls.set(TOKEN_KEY,token);hideLock();setSync("idle");startSync();
+}
+function lockDevice(expired){G.token="";try{localStorage.removeItem(TOKEN_KEY);}catch(e){}setSync("locked");
+  showLock(expired?"The group's access key was rejected or has expired. Ask the group owner to renew it, then unlock again.":"");}
+let syncStarted=false;
+function startSync(){
+  pull().then(()=>{if(G.dirty)push();});
+  if(syncStarted)return;syncStarted=true;
+  setInterval(()=>{if(document.visibilityState==="visible")pull();},30000);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")pull();});
+  window.addEventListener("online",()=>{G.dirty?push():pull();});
+  window.addEventListener("offline",()=>setSync("offline"));
+}
+
+/* ---------- bill photos stored in the data repo ---------- */
+const photoCache=new Map();
+function photoURL(path){
+  if(photoCache.has(path))return photoCache.get(path);
+  const p=(async()=>{const r=await api(`contents/${encPath(path)}?ref=${encodeURIComponent(CFG.branch)}`,{headers:{Accept:"application/vnd.github.raw+json"}});
+    if(!r.ok)throw await httpErr(r);return URL.createObjectURL(new Blob([await r.arrayBuffer()],{type:"image/jpeg"}));})();
+  photoCache.set(path,p);p.catch(()=>photoCache.delete(path));return p;
+}
+function hydratePhotos(root){(root||document).querySelectorAll("img[data-rpath]").forEach(img=>{if(img.dataset.loaded)return;img.dataset.loaded="1";
+  photoURL(img.dataset.rpath).then(u=>{img.src=u;img.dataset.src=u;}).catch(()=>{img.alt="Photo unavailable";img.classList.add("missing");});});}
+S.assets={async upload(blob){
+  const path=(CFG.photos||"photos").replace(/\/+$/,"")+"/"+uid()+".jpg";
+  const r=await api(`contents/${encPath(path)}`,{method:"PUT",body:JSON.stringify({message:"Add bill photo",content:await blobB64(blob),branch:CFG.branch})});
+  if(!r.ok)throw await httpErr(r);
+  photoCache.set(path,Promise.resolve(URL.createObjectURL(blob)));return {path};}};
+
+/* ---------- backup ---------- */
+function downloadBackup(){
+  const blob=new Blob([JSON.stringify(G.data,null,1)],{type:"application/json"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="wang-kicau-backup-"+today()+".json";document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);toast("Backup downloaded");
+}
+async function restoreBackup(file){
+  try{const d=JSON.parse(await file.text());if(!d||typeof d!=="object"||!d.members)throw 0;
+    G.data=mergeData(G.data,normalizeData(d));touch();toast("Backup merged into the ledger");}
+  catch(e){toast("That file isn't a Wang-Kicau backup.");}
+}
+
+/* ---------- toast & lightbox ---------- */
+let toastT;
+function toast(msg,undo){
+  const r=$("#toast-root");clearTimeout(toastT);
+  r.innerHTML=`<div class="toast" role="status"><span>${esc(msg)}</span>${undo?'<button data-act="undo">Undo</button>':""}</div>`;
+  S.undo=undo||null;toastT=setTimeout(()=>{r.innerHTML="";S.undo=null;},undo?7000:4000);
+}
+function lightbox(src){$("#lightbox-root").innerHTML=src?`<div class="lightbox" data-act="lightbox-close" role="dialog" aria-label="Bill photo"><img src="${esc(src)}" alt="Bill photo"></div>`:"";}
+const receiptSrc=r=>r?(r.url||(r.id?"/_blob/"+r.id:"")):"";
+
+/* ---------- render ---------- */
+const PAGES={dashboard:["Dashboard","Where the group's money goes"],expenses:["Expenses","Every bill, who paid and who still owes"],settle:["Split & settle","Who transfers to whom"],
+  events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
+function renderAll(){
+  applyAppearance();
+  const n=S.members.length;
+  $("#gsub").textContent=(S.config.groupName?S.config.groupName+" · ":"")+(n?`${n} member${n>1?"s":""} · ${S.events.length} event${S.events.length===1?"":"s"}`:"Shared bills in Rupiah");
+  if(!PAGES[S.tab])S.tab="dashboard";
+  document.querySelectorAll(".nav-i").forEach(t=>{if(t.dataset.id===S.tab)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current");});
+  $("#ptitle").textContent=PAGES[S.tab][0];$("#psub").textContent=PAGES[S.tab][1];
+  $("#btn-add").disabled=S.readOnly;
+  $("#btn-scan").hidden=S.readOnly;
+  const cfg=S.tab==="members"||S.tab==="categories"||S.tab==="appearance"||S.tab==="sync";$("#filters").hidden=cfg;
+  const evTab=S.tab==="events";
+  $("#fld-preset").hidden=evTab;$("#fld-event").hidden=evTab;
+  $("#flt-preset").value=S.f.preset;
+  $("#fld-from").hidden=$("#fld-to").hidden=evTab||S.f.preset!=="custom";
+  $("#flt-from").value=S.f.from||"";$("#flt-to").value=S.f.to||"";
+  if(S.f.event&&S.f.event!=="_none"&&S.loaded.v&&!evt(S.f.event))S.f.event="";
+  $("#flt-event").innerHTML=`<option value="">All events</option><option value="_none" ${S.f.event==="_none"?"selected":""}>No event</option>`+sortedEvents().map(e=>`<option value="${esc(e.id)}" ${e.id===S.f.event?"selected":""}>${esc(e.name)}${e.closed?" (closed)":""}</option>`).join("");
+  const allCats=[...new Set([...cats(),...S.expenses.map(x=>x.cat).filter(Boolean)])];
+  $("#flt-cat").innerHTML=`<option value="">All categories</option>`+allCats.map(c=>`<option ${c===S.f.cat?"selected":""}>${esc(c)}</option>`).join("");
+  $("#flt-person").innerHTML=`<option value="">Everyone</option>`+S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===S.f.person?"selected":""}>${esc(m.name)}</option>`).join("");
+  $("#btn-reset").hidden=!filtersActive();
+  const bn=$("#banner");
+  if(S.offline){bn.hidden=false;bn.textContent="Not connected to the shared ledger in this view. Changes here are kept only until you close the page.";}
+  else if(S.readOnly){bn.hidden=false;bn.textContent="View-only: you can browse and filter, but only people with edit access can add expenses or mark transfers.";}
+  else bn.hidden=true;
+  const v=$("#view");
+  if(S.db&&!(S.loaded.m&&S.loaded.e)){v.innerHTML=`<div class="card empty"><p class="muted"><span class="spin"></span>Loading your group's ledger…</p></div>`;return;}
+  if(S.tab==="members")v.innerHTML=viewMembers();
+  else if(S.tab==="categories")v.innerHTML=viewCategories();
+  else if(S.tab==="appearance")v.innerHTML=viewAppearance();
+  else if(S.tab==="sync")v.innerHTML=viewSync();
+  else if(!S.members.length)v.innerHTML=viewOnboard();
+  else if(S.tab==="events")v.innerHTML=viewEvents();
+  else if(S.tab==="settle")v.innerHTML=viewSettle();
+  else if(S.tab==="dashboard")v.innerHTML=viewDash();
+  else v.innerHTML=viewExpenses();
+  hydratePhotos(v);renderSyncPill();
+}
+
+function viewOnboard(){
+  return `<div class="card empty"><h2>Set up your group</h2><p class="muted">A few steps and everyone can see who paid, who owes, and where the money went.</p>
+  <div class="steps">
+    <div class="step"><b>1</b><h3>Add members</h3><p class="muted small">Up to ${MAX_MEMBERS} people who share bills.</p></div>
+    <div class="step"><b>2</b><h3>Create events</h3><p class="muted small">Optional: a trip, a project or a month in the shared house.</p></div>
+    <div class="step"><b>3</b><h3>Scan or log bills</h3><p class="muted small">Upload a bill photo or type it in, then split it.</p></div>
+    <div class="step"><b>4</b><h3>Settle up</h3><p class="muted small">See who transfers to whom and mark it as transferred.</p></div>
+  </div>
+  <button class="btn primary" data-act="tab" data-id="members">Add members</button></div>`;
+}
+function emptyFiltered(){
+  if(!S.expenses.length)return `<div class="card empty"><h2>No expenses yet</h2><p class="muted">Scan a bill photo or add an expense by hand.</p>${S.readOnly?"":`<div class="ctrls" style="justify-content:center"><button class="btn" data-act="scan-new">Scan bill</button><button class="btn primary" data-act="add">+ Add expense</button></div>`}</div>`;
+  return `<div class="card empty"><h2>Nothing in this view</h2><p class="muted">No expenses match ${esc(ctxLabel())}${S.f.person?" · "+esc(mname(S.f.person)):""}.</p><button class="btn" data-act="reset-filters">Clear filters</button></div>`;
+}
+function statusPill(x){
+  const o=owedOf(x);const others=shareList(x).filter(s=>s.mid!==x.paidBy&&s.amount>0);
+  if(!others.length)return `<span class="pill self">Personal</span>`;
+  if(o===0)return `<span class="pill paid"><span class="dot"></span>Settled</span>`;
+  const n=others.filter(s=>!s.paid).length;
+  return `<span class="pill owed" title="${n} of ${others.length} people still owe"><span class="dot"></span>${esc(rp(o))} owed</span>`;
+}
+
+function viewExpenses(){
+  let list=fullList();
+  if(!list.length)return emptyFiltered();
+  const p=S.f.person;
+  const total=list.reduce((a,x)=>a+amountFor(x,p),0);
+  const owed=list.reduce((a,x)=>a+owedOf(x),0);
+  const settled=list.filter(x=>owedOf(x)===0).length;const count=list.length;
+  if(S.status==="owed")list=list.filter(x=>owedOf(x)>0);
+  if(S.status==="settled")list=list.filter(x=>owedOf(x)===0);
+  list=sortX(list);
+  let rows="";
+  if(S.groupBy==="event"){
+    const order=[...sortedEvents().map(e=>e.id),""];const by={};list.forEach(x=>(by[evOf(x)]=by[evOf(x)]||[]).push(x));
+    rows=order.filter(k=>by[k]).map(k=>{const items=by[k];const t=items.reduce((a,x)=>a+amountFor(x,p),0);const e=evt(k);
+      const span=e?fmtSpan(e.start,e.end)||fmtSpan(items[items.length-1].date,items[0].date):fmtSpan(items[items.length-1].date,items[0].date);
+      return `<div class="grouphead ev"><span class="t"><span class="catdot" style="background:${k?evColor(k):"var(--line-strong)"}"></span>${esc(k?e.name:"No event")}<span class="small muted" style="font-weight:500">${esc(span)} · ${items.length} expense${items.length>1?"s":""}</span></span><span class="num">${esc(rp(t))}</span></div>`+items.map(rowHTML).join("");}).join("");
+  }else{
+    const groups=[];list.forEach(x=>{const g=groups[groups.length-1];if(g&&g.date===x.date)g.items.push(x);else groups.push({date:x.date,items:[x]});});
+    rows=groups.map(g=>`<div class="grouphead"><span class="t">${esc(fmtDay(g.date))}</span><span class="num">${esc(rp(g.items.reduce((a,x)=>a+amountFor(x,p),0)))}</span></div>`+g.items.map(rowHTML).join("")).join("");
+  }
+  return `<div class="card">
+    <div class="sechead">
+      <div class="strip">
+        <div><div class="label">${p?esc(mname(p))+"'s share":"Total spent"} · ${esc(ctxLabel())}</div><div class="big num">${esc(rp(total))}</div></div>
+        <div><div class="label">Expenses</div><div class="big num">${count}</div></div>
+        <div><div class="label">Still owed</div><div class="big num" style="color:var(--owed)">${esc(rp(owed))}</div></div>
+      </div>
+    </div>
+    <div class="sechead" style="margin-top:14px">
+      <div class="ctrls"><span class="label">Group by</span><div class="seg" role="group" aria-label="Group by">
+        <button data-act="groupby" data-id="date" aria-pressed="${S.groupBy==="date"}">Date</button>
+        <button data-act="groupby" data-id="event" aria-pressed="${S.groupBy==="event"}">Event</button></div></div>
+      <div class="seg" role="group" aria-label="Status">
+        <button data-act="status" data-id="all" aria-pressed="${S.status==="all"}">All</button>
+        <button data-act="status" data-id="owed" aria-pressed="${S.status==="owed"}">Still owed</button>
+        <button data-act="status" data-id="settled" aria-pressed="${S.status==="settled"}">Settled (${settled})</button>
+      </div>
+    </div>
+    <div class="ledger" style="margin-top:4px">${rows||`<p class="muted" style="padding:20px 4px">No expenses with this status.</p>`}</div>
+  </div>`;
+}
+
+function rowHTML(x){
+  const open=S.open.has(x.id);
+  const parts=shareList(x).filter(s=>s.amount>0);
+  const e=evt(x.eventId);
+  const head=`<div class="xrow" data-act="toggle" data-id="${esc(x.id)}" aria-expanded="${open}" role="button" tabindex="0">
+    <div class="xmain"><span class="catdot" style="background:${catColor(x.cat)}"></span>
+      <div style="min-width:0"><div class="xdesc">${esc(x.desc||x.cat||"Expense")}</div>
+      <div class="xmeta">${e&&S.groupBy!=="event"?`<span class="evtag" style="color:${evColor(e.id)}">${ico.flag}<span style="color:var(--fg)">${esc(e.name)}</span></span>`:""}${S.groupBy==="event"?`<span>${esc(fmtShort(x.date))}</span><span>·</span>`:""}<span>${esc(x.cat||"Other")}</span><span>·</span>${av(x.paidBy,"sm")}<span>${esc(mname(x.paidBy))} paid</span><span>·</span><span class="avs">${parts.slice(0,6).map(s=>av(s.mid,"sm")).join("")}</span>${parts.length>6?`<span>+${parts.length-6}</span>`:""}${x.receipt?`<span>· Bill photo</span>`:""}</div></div></div>
+    <div class="xstat">${statusPill(x)}</div>
+    <div class="xamt num">${esc(rp(x.amount))}${S.f.person&&x.shares?.[S.f.person]?`<div class="small muted" style="font-weight:500">share ${esc(rp(x.shares[S.f.person].amount))}</div>`:""}</div>
+    <svg class="chev" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>`;
+  if(!open)return head;
+  const shares=parts.map(s=>{
+    let st;
+    if(s.mid===x.paidBy)st=`<span class="pill self">Paid the bill</span>`;
+    else if(S.readOnly)st=s.paid?`<span class="pill paid"><span class="dot"></span>Transferred</span>`:`<span class="pill owed"><span class="dot"></span>Owed</span>`;
+    else st=s.paid?`<button class="pill paid" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as still owed"><span class="dot"></span>Transferred</button>`
+      :`<button class="pill owed" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as transferred"><span class="dot"></span>Owed · mark paid</button>`;
+    return `<div class="share">${av(s.mid)}<span class="who">${esc(mname(s.mid))}<br><span class="num small muted">${esc(rp(s.amount))}</span></span>${st}</div>`;
+  }).join("");
+  const items=Array.isArray(x.items)&&x.items.length?`<div class="label" style="margin-top:6px">Items on the bill</div><div class="itemlist">${x.items.map(it=>`<div><span>${esc(it.name)}${(it.qty||1)>1?` <span class="muted">× ${it.qty}</span>`:""}</span><span class="avs">${(it.who&&it.who.length?it.who:[...new Set(x.items.flatMap(i=>i.who||[]))].concat(x.items.some(i=>i.who&&i.who.length)?[]:S.members.map(m=>m.id))).slice(0,6).map(id=>av(id,"sm")).join("")}</span><span class="num">${esc(rp(it.amount))}</span></div>`).join("")}${(x.charges||[]).map(c=>`<div class="chg"><span>${esc(c.label)}</span><span class="small muted">split by items</span><span class="num">${c.less?"−":""}${esc(rp(c.amount))}</span></div>`).join("")}</div>`:"";
+  const del=S.confirmDel===x.id
+    ?`<span class="small">Delete this expense for everyone?</span><button class="btn sm danger" data-act="del-yes" data-id="${esc(x.id)}">Delete</button><button class="btn sm" data-act="del-no">Keep</button>`
+    :`<button class="btn sm" data-act="edit" data-id="${esc(x.id)}">Edit</button><button class="btn sm ghost" data-act="del" data-id="${esc(x.id)}">Delete</button>`;
+  const split=x.split==="custom"?"Custom split":x.split==="items"?"Split by items":"Split equally";
+  return head+`<div class="xdetail">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:start">
+      <div style="flex:1;min-width:0">
+        <div class="label">${split} · ${parts.length} ${parts.length===1?"person":"people"}${e?" · "+esc(e.name):""}</div>
+        <div class="shares">${shares}</div>
+        ${items}
+        ${x.note?`<p class="small muted" style="margin:0 0 10px">${esc(x.note)}</p>`:""}
+      </div>
+      ${x.receipt&&x.receipt.path?`<img class="thumb" data-rpath="${esc(x.receipt.path)}" alt="Bill photo" data-act="lightbox">`:""}
+    </div>
+    ${S.readOnly?"":`<div class="xactions">${del}</div>`}
+  </div>`;
+}
+
+/* ---------- events ---------- */
+function eventStats(list){
+  const st={};const g=k=>st[k]||(st[k]={total:0,n:0,owed:0,min:"",max:"",people:new Set(),cats:{}});
+  list.forEach(x=>{const s=g(evOf(x));const v=amountFor(x,S.f.person);s.total+=v;s.n++;s.owed+=owedOf(x);
+    if(!s.min||x.date<s.min)s.min=x.date;if(!s.max||x.date>s.max)s.max=x.date;
+    s.people.add(x.paidBy);Object.keys(x.shares||{}).forEach(k=>s.people.add(k));s.cats[x.cat]=(s.cats[x.cat]||0)+v;});
+  return st;
+}
+function viewEvents(){
+  const list=filt({date:false,event:false});const st=eventStats(list);
+  const card=(e)=>{const s=st[e?e.id:""]||{total:0,n:0,owed:0,people:new Set(),cats:{}};
+    const topCat=Object.entries(s.cats).sort((a,b)=>b[1]-a[1])[0];
+    const span=e?(fmtSpan(e.start,e.end)||fmtSpan(s.min,s.max)||"No dates set"):fmtSpan(s.min,s.max);
+    const id=e?e.id:"_none";
+    return `<div class="evcard ${e&&e.closed?"closed":""}">
+      <div class="top2"><div style="min-width:0"><h3><span class="catdot" style="background:${e?evColor(e.id):"var(--line-strong)"}"></span>${esc(e?e.name:"Not in an event")}</h3>
+        <div class="small muted">${esc(span)}${e&&e.closed?" · Closed":""}</div></div>
+        ${s.owed?`<span class="pill owed"><span class="dot"></span>${esc(rpc(s.owed))} owed</span>`:s.n?`<span class="pill paid"><span class="dot"></span>Settled</span>`:""}</div>
+      <div><div class="label">${S.f.person?esc(mname(S.f.person))+"'s share":"Total spent"}</div><div class="tot num">${esc(rp(s.total))}</div></div>
+      <div class="evstats"><span><b>${s.n}</b> expense${s.n===1?"":"s"}</span>${topCat?`<span>Top: <b>${esc(topCat[0])}</b></span>`:""}<span class="avs">${[...s.people].slice(0,7).map(i=>av(i,"sm")).join("")}</span></div>
+      ${e&&e.note?`<div class="small muted">${esc(e.note)}</div>`:""}
+      <div class="evbtns">
+        <button class="btn sm" data-act="ev-view" data-id="${id}" ${s.n?"":"disabled"}>View expenses</button>
+        <button class="btn sm" data-act="ev-settle" data-id="${id}" ${s.n?"":"disabled"}>Settle</button>
+        ${e&&!S.readOnly?`<button class="btn sm ghost" data-act="ev-edit" data-id="${e.id}">Edit</button>`:""}
+      </div></div>`;};
+  const evs=sortedEvents();
+  const grand=list.reduce((a,x)=>a+amountFor(x,S.f.person),0);
+  const inEv=list.filter(x=>evOf(x)).reduce((a,x)=>a+amountFor(x,S.f.person),0);
+  return `<div class="card"><div class="sechead"><div><h2>Events &amp; projects</h2><p class="small muted" style="margin:2px 0 0">Group bills by trip, project or occasion. Totals here cover all dates${S.f.cat?" · "+esc(S.f.cat):""}${S.f.person?" · "+esc(mname(S.f.person)):""}.</p></div>
+    ${S.readOnly?"":`<button class="btn primary" data-act="ev-new">+ New event</button>`}</div>
+    <div class="strip" style="margin-top:14px"><div><div class="label">All expenses</div><div class="big num">${esc(rp(grand))}</div></div><div><div class="label">In events</div><div class="big num">${esc(rp(inEv))}</div></div><div><div class="label">Not in an event</div><div class="big num">${esc(rp(grand-inEv))}</div></div></div>
+  </div>
+  ${evs.length?"":`<div class="card empty"><h2>No events yet</h2><p class="muted">Create one for a trip like “Bali Oct 2026” or a project like “House rent Q4”, then tag expenses to it.</p>${S.readOnly?"":`<button class="btn primary" data-act="ev-new">+ New event</button>`}</div>`}
+  <div class="evgrid">${evs.map(card).join("")}${st[""]?card(null):""}</div>`;
+}
+function openEventForm(e){
+  S.evform={id:e?.id||null,orig:e||null};
+  const used=e?S.expenses.some(x=>x.eventId===e.id):false;
+  $("#modal-root").innerHTML=`<div class="overlay" data-act="overlay"><form class="modal" id="evform" role="dialog" aria-modal="true" aria-labelledby="ev-title" novalidate style="max-width:480px">
+    <header><h2 id="ev-title">${e?"Edit event":"New event"}</h2><button type="button" class="btn ghost sm" data-act="close">Close</button></header>
+    <div class="body">
+      <div class="fld"><label for="ev-name">Name</label><input class="ctl" id="ev-name" value="${esc(e?.name||"")}" placeholder="e.g. Bali trip, Kos rent Q4, Dina's birthday" maxlength="50"></div>
+      <div class="row2"><div class="fld"><label for="ev-start">Start (optional)</label><input class="ctl" type="date" id="ev-start" value="${esc(e?.start||"")}"></div>
+        <div class="fld"><label for="ev-end">End (optional)</label><input class="ctl" type="date" id="ev-end" value="${esc(e?.end||"")}"></div></div>
+      <p class="small muted" style="margin:-4px 0 0">With dates set, new expenses in that range are tagged to this event automatically.</p>
+      <div class="fld"><label for="ev-note">Note (optional)</label><input class="ctl" id="ev-note" value="${esc(e?.note||"")}" maxlength="120" placeholder="e.g. Villa + flights booked by Raka"></div>
+      ${e?`<label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ev-closed" ${e.closed?"checked":""} style="accent-color:var(--accent)">Closed (hide from the add-expense list)</label>`:""}
+      <div class="err" id="ev-err" hidden></div>
+    </div>
+    <footer><span>${e?(used?`<span class="small muted">Has expenses, so it can't be deleted</span>`:`<button type="button" class="btn sm danger" data-act="ev-del" data-id="${e.id}">Delete event</button>`):""}</span>
+      <div style="display:flex;gap:8px"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">${e?"Save":"Create event"}</button></div></footer>
+  </form></div>`;
+  setTimeout(()=>$("#ev-name")?.focus(),30);
+}
+async function submitEvent(){
+  const name=$("#ev-name").value.trim(),start=$("#ev-start").value,end=$("#ev-end").value,note=$("#ev-note").value.trim();
+  const err=$("#ev-err");
+  if(!name){err.hidden=false;err.textContent="Give the event a name.";return;}
+  if(start&&end&&end<start){err.hidden=false;err.textContent="The end date is before the start date.";return;}
+  const o=S.evform.orig;const id=o?.id||uid();
+  let color=o?.color;if(color==null){const used=new Set(S.events.map(e=>e.color));color=0;while(used.has(color)&&color<9)color++;if(used.has(color))color=S.events.length%10;}
+  const doc={name,start,end,note,color,closed:o?!!$("#ev-closed")?.checked:false,createdAt:o?.createdAt||Date.now()};
+  closeModal();
+  if(await put("events",id,doc))toast(o?"Event saved":"Event created: "+name);
+}
+function autoEvent(date){
+  const m=S.events.filter(e=>!e.closed&&e.start&&date>=e.start&&(!e.end||date<=e.end));
+  return m.sort((a,b)=>(b.start||"").localeCompare(a.start||""))[0]?.id||"";
+}
+
+/* ---------- settle ---------- */
+function viewSettle(){
+  const base=baseList();const list=fullList();
+  if(!S.expenses.length)return emptyFiltered();
+  const P=pairs(list);
+  const pairHTML=P.length?P.map(p=>`<div class="pair">
+      <div><div class="pairwho">${av(p.from)}<b>${esc(mname(p.from))}</b><span class="arrow">pays →</span>${av(p.to)}<b>${esc(mname(p.to))}</b></div>
+      <div class="small muted" style="margin-top:4px">From ${p.n} expense${p.n>1?"s":""}${p.offset?` · ${esc(rp(p.offset))} offset both ways`:""}</div></div>
+      <div class="pairright"><div class="pairamt num">${p.amount?esc(rp(p.amount)):"Even"}</div>
+      ${S.readOnly?"":`<button class="btn sm primary" data-act="settle" data-a="${esc(p.a)}" data-b="${esc(p.b)}">${p.amount?"Mark transferred":"Clear both"}</button>`}</div>
+    </div>`).join("")
+    :`<div class="empty" style="padding:24px 8px"><span class="pill paid" style="font-size:14px"><span class="dot"></span>All settled</span><p class="muted small">Nobody owes anything${filtersActive()?" in this view":""}.</p></div>`;
+  const B=balances(base);
+  const rows=S.members.map(m=>{const b=B[m.id];const net=b.gets-b.owes;
+    return `<tr class="${S.f.person===m.id?"hl":""}"><td><span class="namecell">${av(m.id,"sm")}${esc(m.name)}</span></td>
+      <td class="num">${esc(rp(b.paid))}</td><td class="num">${esc(rp(b.share))}</td>
+      <td class="num ${b.owes?"neg":""}">${esc(rp(b.owes))}</td><td class="num ${b.gets?"pos":""}">${esc(rp(b.gets))}</td>
+      <td class="num ${net>0?"pos":net<0?"neg":""}">${net>0?"+":net<0?"−":""}${esc(rp(Math.abs(net)))}</td></tr>`;}).join("");
+  const hist=[];list.forEach(x=>shareList(x).forEach(s=>{if(s.mid!==x.paidBy&&s.paid&&s.amount>0)hist.push({x,s});}));
+  hist.sort((a,b)=>(b.s.paidAt||"").localeCompare(a.s.paidAt||""));
+  const histHTML=hist.length?hist.slice(0,12).map(h=>`<div><span>${esc(mname(h.s.mid))} → ${esc(mname(h.x.paidBy))} <span class="muted small">· ${esc(h.x.desc||h.x.cat)}${h.s.paidAt?" · "+esc(fmtShort(h.s.paidAt)):""}</span></span><span class="num pos">${esc(rp(h.s.amount))}</span></div>`).join("")
+    :`<p class="muted small">Transfers you mark will show here.</p>`;
+  const totalOwed=P.reduce((a,p)=>a+p.amount,0);
+  return `<div class="grid2">
+    <div class="card">
+      <div class="sechead"><div><h2>Who pays whom</h2><p class="small muted" style="margin:2px 0 0">${esc(ctxLabel())} · debts between each pair are netted</p></div>
+      ${P.length?`<button class="btn sm" data-act="copy">Copy summary</button>`:""}</div>
+      ${P.length?`<div class="strip" style="margin-top:12px"><div><div class="label">Total to transfer</div><div class="big num" style="color:var(--owed)">${esc(rp(totalOwed))}</div></div><div><div class="label">Transfers</div><div class="big num">${P.filter(p=>p.amount).length}</div></div></div>`:""}
+      <div class="pairs">${pairHTML}</div>
+      <div id="copy-slot"></div>
+    </div>
+    <div class="card"><h2>Recently transferred</h2><div class="hist">${histHTML}</div></div>
+  </div>
+  <div class="card"><h2>Balances by person</h2><p class="small muted" style="margin:2px 0 0">Paid = bills they covered. Share = what they consumed. Owes / gets back = unpaid shares.</p>
+    <div class="tbl-wrap"><table><thead><tr><th>Person</th><th>Paid</th><th>Share</th><th>Owes</th><th>Gets back</th><th>Net</th></tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+/* ---------- dashboard ---------- */
+function niceMax(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v)));const f=v/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;}
+const weekStart=d=>{const x=new Date(d);const off=(x.getDay()+6)%7;x.setDate(x.getDate()-off);return x;};
+function trendSVG(list,mode){
+  const p=S.f.person;const {from,to}=range();const dates=list.map(x=>x.date).sort();
+  let a=dates[0],b=dates[dates.length-1];
+  if(from&&S.f.preset!=="all"&&!S.f.event){a=from;b=to&&to<today()?to:(b>today()?b:today());if(to&&b>to)b=to;}
+  const buckets=[];const idx={};
+  if(mode==="week"){
+    for(let d=weekStart(parseD(a));ymd(d)<=b;d.setDate(d.getDate()+7)){const k=ymd(d);idx[k]=buckets.length;
+      buckets.push({k,label:dm(d),full:"Week of "+fmtShort(k),v:0});}
+    list.forEach(x=>{const k=ymd(weekStart(parseD(x.date)));if(k in idx)buckets[idx[k]].v+=amountFor(x,p);});
+  }else{
+    const s=parseD(a);s.setDate(1);const e=parseD(b);
+    for(let d=new Date(s);d<=e;d.setMonth(d.getMonth()+1)){const k=ymd(d).slice(0,7);idx[k]=buckets.length;
+      buckets.push({k,label:MON3[d.getMonth()]+(d.getMonth()===0||buckets.length===0?" "+String(d.getFullYear()).slice(2):""),full:d.toLocaleDateString("en-GB",{month:"long",year:"numeric"}),v:0});}
+    list.forEach(x=>{const k=x.date.slice(0,7);if(k in idx)buckets[idx[k]].v+=amountFor(x,p);});
+  }
+  const W=680,H=230,L=62,R=8,T=12,Bm=26;const max=niceMax(Math.max(...buckets.map(b=>b.v),0));
+  const iw=W-L-R,ih=H-T-Bm,bw=iw/Math.max(buckets.length,1);
+  let g="";for(let i=0;i<=4;i++){const y=T+ih-ih*i/4;g+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="axis" x="${L-8}" y="${y+4}" text-anchor="end">${esc(i?cf.format(max*i/4):"0")}</text>`;}
+  const step=Math.ceil(buckets.length/10);
+  const bars=buckets.map((bk,i)=>{const h=bk.v/max*ih;const w=Math.min(Math.max(bw*.62,1),56);const x=L+i*bw+(bw-w)/2;
+    return `<rect class="bar" x="${x.toFixed(1)}" y="${(T+ih-h).toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(h,bk.v?1.5:0).toFixed(1)}" rx="3"><title>${esc(bk.full)}: ${esc(rp(bk.v))}</title></rect>`+
+      (i%step===0?`<text class="axis" x="${(L+i*bw+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(bk.label)}</text>`:"");}).join("");
+  const nz=buckets.filter(b=>b.v);const avg=nz.length?buckets.reduce((s,b)=>s+b.v,0)/buckets.length:0;
+  return {svg:`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending per ${mode}">${g}${bars}</svg>`,avg,n:buckets.length};
+}
+const chevron=`<svg class="acc-chev" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function viewDash(){
+  const list=fullList();const base=baseList();const p=S.f.person;
+  if(!list.length)return emptyFiltered();
+  const total=list.reduce((a,x)=>a+amountFor(x,p),0);
+  const B=balances(base);
+  const P=pairs(list).filter(x=>x.amount);const toTransfer=P.reduce((a,x)=>a+x.amount,0);
+  const openSpend=S.acc.has("spend"),openOwed=S.acc.has("owed");
+  // spending per person (their share), highest first
+  const people=S.members.map(m=>({id:m.id,v:B[m.id]?.share||0})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
+  const groupTotal=people.reduce((a,r)=>a+r.v,0);const pmx=people[0]?.v||1;
+  const spendBody=people.length?people.map((r,i)=>`<div class="hb ${p&&p!==r.id?"dim":""}"><span class="nm"><span class="rank num">${i+1}</span>${av(r.id,"sm")}<span class="t">${esc(mname(r.id))}</span></span><span class="track"><span class="fill" style="width:${(r.v/pmx*100).toFixed(1)}%;background:${mcolor(r.id)}"></span></span><span class="num small">${esc(rp(r.v))} <span class="muted">${groupTotal?Math.round(r.v/groupTotal*100):0}%</span></span></div>`).join(""):`<p class="small muted">No spending in this view.</p>`;
+  const owedBody=P.length?P.map(x=>`<div class="owrow"><span class="pairwho">${av(x.from,"sm")}<b>${esc(mname(x.from))}</b><span class="arrow">→</span>${av(x.to,"sm")}<b>${esc(mname(x.to))}</b></span><span class="num owamt">${esc(rp(x.amount))}</span>${S.readOnly?"":`<button class="btn sm" data-act="settle" data-a="${esc(x.a)}" data-b="${esc(x.b)}">Mark transferred</button>`}</div>`).join("")+`<button class="btn sm ghost" data-act="tab" data-id="settle" style="margin-top:6px">Open Split &amp; settle</button>`
+    :`<p class="small muted" style="margin:0"><span class="pill paid"><span class="dot"></span>All settled</span> Nobody owes anything in this view.</p>`;
+  const t=trendSVG(list,S.trend);
+  const bars=(arr,color,label)=>{const mx=arr[0]?.[1]||1;return arr.map(([k,v])=>`<div class="hb"><span class="nm"><span class="catdot" style="background:${color(k)}"></span><span class="t">${esc(label(k))}</span></span><span class="track"><span class="fill" style="width:${(v/mx*100).toFixed(1)}%;background:${color(k)}"></span></span><span class="num small">${esc(rpc(v))} <span class="muted">${total?Math.round(v/total*100):0}%</span></span></div>`).join("");};
+  const byCat={};list.forEach(x=>{const v=amountFor(x,p);if(v)byCat[x.cat||"Other"]=(byCat[x.cat||"Other"]||0)+v;});
+  const byEv={};list.forEach(x=>{const v=amountFor(x,p);if(v)byEv[evOf(x)]=(byEv[evOf(x)]||0)+v;});
+  const catArr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);const evArr=Object.entries(byEv).sort((a,b)=>b[1]-a[1]);
+  const top=list.slice().sort((a,b)=>amountFor(b,p)-amountFor(a,p)).slice(0,5).map(x=>`<div><span style="min-width:0"><b>${esc(x.desc||x.cat)}</b><br><span class="small muted">${esc(fmtShort(x.date))} · ${esc(x.cat)}${evOf(x)?" · "+esc(evName(x.eventId)):""} · ${esc(mname(x.paidBy))} paid</span></span><span class="num">${esc(rp(amountFor(x,p)))}</span></div>`).join("");
+  const owedSub=p?`${esc(mname(p))} owes ${esc(rp(B[p]?.owes||0))} · gets back ${esc(rp(B[p]?.gets||0))}`:`${P.length} transfer${P.length===1?"":"s"} to settle up`;
+  return `<div class="kpis two">
+    <div class="kpi acc ${openSpend?"open":""}">
+      <button class="kpi-head" data-act="acc" data-id="spend" aria-expanded="${openSpend}">
+        <span><span class="label">${p?esc(mname(p))+"'s spending":"Total spending (group)"}</span><span class="v num">${esc(rp(total))}</span><span class="s">${esc(ctxLabel())}</span></span>
+        <span class="acc-tog">See details ${chevron}</span></button>
+      ${openSpend?`<div class="acc-body"><div class="hbars" style="margin-top:0">${spendBody}</div></div>`:""}
+    </div>
+    <div class="kpi acc owed ${openOwed?"open":""}">
+      <button class="kpi-head" data-act="acc" data-id="owed" aria-expanded="${openOwed}">
+        <span><span class="label">Still owed</span><span class="v num">${esc(rp(toTransfer))}</span><span class="s">${owedSub}</span></span>
+        <span class="acc-tog">Who pays whom ${chevron}</span></button>
+      ${openOwed?`<div class="acc-body">${owedBody}</div>`:""}
+    </div>
+  </div>
+  <div class="card"><div class="sechead"><div><h2>Spending per ${S.trend==="week"?"week":"month"}</h2><span class="small muted">${p?esc(mname(p))+"'s share":"All bills"} · ${esc(ctxLabel())} · avg ${esc(rp(t.avg))} per ${S.trend}</span></div>
+    <div class="seg" role="group" aria-label="Chart period"><button data-act="trend" data-id="week" aria-pressed="${S.trend==="week"}">Weekly</button><button data-act="trend" data-id="month" aria-pressed="${S.trend==="month"}">Monthly</button></div></div>${t.svg}</div>
+  <div class="grid2">
+    <div class="card"><div class="sechead"><h2>By event</h2>${S.f.event?"":`<button class="btn sm ghost" data-act="tab" data-id="events">All events</button>`}</div><div class="hbars">${bars(evArr,k=>k?evColor(k):"var(--line-strong)",k=>k?evName(k):"No event")}</div></div>
+    <div class="card"><h2>By category</h2><div class="hbars">${bars(catArr,catColor,k=>k)}</div></div>
+  </div>
+  <div class="card"><h2>Biggest expenses</h2><div class="toplist">${top}</div></div>`;
+}
+
+/* ---------- configuration ---------- */
+function viewMembers(){
+  const used=new Set();S.expenses.forEach(x=>{used.add(x.paidBy);Object.keys(x.shares||{}).forEach(k=>used.add(k));});
+  const ro=S.readOnly?"disabled":"";
+  const ms=S.members.map(m=>`<div class="mrow"><button class="avbtn" data-act="mem-color" data-id="${esc(m.id)}" aria-expanded="${S.colorOpen===m.id}" title="Change colour" ${ro}>${av(m.id)}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><input class="ctl" id="mem-${esc(m.id)}" data-mem="${esc(m.id)}" value="${esc(m.name)}" maxlength="40" aria-label="Name" ${ro}>
+    <button class="btn sm ghost" data-act="mem-del" data-id="${esc(m.id)}" ${used.has(m.id)||S.readOnly?"disabled":""} title="${used.has(m.id)?"Has expenses, so it can't be removed":"Remove"}">Remove</button></div>${S.colorOpen===m.id&&!S.readOnly?`<div class="swatches" role="group" aria-label="Colour for ${esc(m.name)}">${MCOLORS.map(([k,nm])=>{const others=S.members.filter(o=>o.id!==m.id&&mKey(o)===k).map(o=>o.name);const pt=mcPaint(k);
+      return `<button class="swatch ${others.length?"taken":""}" data-act="mem-color-set" data-id="${esc(m.id)}" data-c="${k}" aria-pressed="${mKey(m)===k}" aria-label="${esc(nm)}" style="background:${pt.bg};--dot:${pt.fg}" title="${esc(nm)}${others.length?" · also used by "+esc(others.join(", ")):""}"></button>`;}).join("")}<span class="small muted swnote">${esc((MCOLORS.find(c=>c[0]===mKey(m))||[])[1]||"")} selected · dot = also used by someone</span></div>`:""}`).join("");
+  return `<div class="grid2">
+    <div class="card"><h2>Members <span class="muted small" style="font-weight:500">${S.members.length} / ${MAX_MEMBERS}</span></h2>
+      <div class="mlist">${ms||`<p class="muted small">No members yet. Add everyone who shares bills.</p>`}</div>
+      ${S.members.length<MAX_MEMBERS&&!S.readOnly?`<form class="addrow" id="mem-form"><input class="ctl" id="mem-new" placeholder="Name" maxlength="40" aria-label="New member name"><button class="btn primary" type="submit">Add member</button></form>`:S.readOnly?"":`<p class="small muted">The group is full (${MAX_MEMBERS} members).</p>`}
+      <p class="small muted" style="margin-top:10px">People with expenses can't be removed, so balances stay correct. Rename them instead.</p>
+    </div>
+    <div class="card"><h2>Group</h2>
+      <div class="fld" style="margin-top:12px"><label for="cfg-name">Group name</label><input class="ctl" id="cfg-name" value="${esc(S.config.groupName||"")}" placeholder="e.g. Kos Kemang 12" maxlength="50" ${ro}></div>
+      <p class="small muted" style="margin-top:8px">Shown in the sidebar and in copied settle-up summaries.</p>
+    </div>
+  </div>`;
+}
+function viewSync(){
+  return `<div class="grid2">
+    <div class="card"><h2>Sync</h2>
+      <div class="ctrls" style="margin-top:12px"><span class="syncpill" id="sync-status"></span><button class="btn sm" data-act="sync-now">Sync now</button></div>
+      <p class="small" id="sync-msg" style="color:var(--owed)"></p>
+      <p class="small muted">Every change is saved to the private repo <b>${esc(REPO_ID)}</b> on GitHub as a commit, so its history doubles as a backup. Others see your changes within about 30 seconds, or straight away when they reopen the page. If two people edit at once, both changes are kept; for the same expense, the latest edit wins.</p>
+    </div>
+    <div class="card"><h2>Backup</h2><p class="small muted" style="margin:2px 0 0">Download a copy of everything, or merge a backup file back in. Where the backup and the ledger disagree, the newer edit is kept.</p>
+      <div class="ctrls" style="margin-top:12px"><button class="btn sm" data-act="backup">Download backup</button><label class="btn sm" for="restore-file" tabindex="0">Restore backup</label><input type="file" id="restore-file" accept="application/json,.json" hidden></div></div>
+    <div class="card"><h2>This device</h2><p class="small muted" style="margin:2px 0 0">The passphrase unlock is remembered on this device. Lock it if you're on a shared or borrowed phone or computer.</p>
+      <button class="btn sm danger" data-act="lock-device" style="margin-top:12px">Lock this device</button></div>
+  </div>`;
+}
+function viewAppearance(){
+  const dark=isDark();const cur=ACCENTS.some(x=>x[0]===S.config.colorTheme)?S.config.colorTheme:"electric";
+  const prev=(bg,side,fg,acc)=>`<span class="mprev" style="background:${bg}"><span class="mside" style="background:${side}"></span><span class="mlines"><span style="background:${fg}"></span><span style="background:${fg};width:60%"></span><span class="mbtn" style="background:${acc}"></span></span></span>`;
+  const accNow=ACCENTS.find(x=>x[0]===cur);
+  const modes=[["light","Light",prev("#FFFFFF","#F4F4F7","#D0D0DA",accNow[2])],["dark","Dark",prev("#0B0B0F","#1C1C23","#3A3A46",accNow[3])],["auto","Auto",`<span class="mprev split">${prev("#FFFFFF","#F4F4F7","#D0D0DA",accNow[2])}${prev("#0B0B0F","#1C1C23","#3A3A46",accNow[3])}</span>`]];
+  return `<div class="card"><h2>Mode</h2><p class="small muted" style="margin:2px 0 0">Saved on this device only, so everyone in the group can pick their own. Auto follows your device setting.</p>
+    <div class="tiles">${modes.map(([k,l,pv])=>`<button class="tile" data-act="mode" data-id="${k}" aria-pressed="${S.mode===k}">${pv}<span class="tl">${l}${k==="auto"?` <span class="muted small">(now ${dark?"dark":"light"})</span>`:""}</span></button>`).join("")}</div></div>
+  <div class="card"><h2>Colour theme</h2><p class="small muted" style="margin:2px 0 0">Applies to everyone in the group. Each colour has its own light and dark shade, picked automatically by the mode.</p>
+    <div class="tiles acc">${ACCENTS.map(([k,l,lh,dh])=>`<button class="tile" data-act="accent" data-id="${k}" aria-pressed="${cur===k}" ${S.readOnly?"disabled":""}><span class="sw" style="background:${dark?dh:lh}"></span><span class="tl">${l}</span></button>`).join("")}</div></div>`;
+}
+function viewCategories(){
+  const usedCats={};S.expenses.forEach(x=>{usedCats[x.cat]=(usedCats[x.cat]||0)+1;});
+  const cs=cats().map(c=>`<span class="chip"><span class="catdot" style="background:${catColor(c)}"></span>${esc(c)}${usedCats[c]?` <span class="muted">${usedCats[c]}</span>`:""}${S.readOnly||usedCats[c]?"":`<button data-act="cat-del" data-id="${esc(c)}" aria-label="Remove ${esc(c)}">×</button>`}</span>`).join("");
+  return `<div class="card" style="max-width:720px"><h2>Categories</h2><p class="small muted" style="margin:2px 0 0">Used to group spending on the dashboard and picked automatically when a bill is scanned. Categories in use can't be removed.</p>
+    <div class="chips">${cs}</div>
+    ${S.readOnly?"":`<form class="addrow" id="cat-form"><input class="ctl" id="cat-new" placeholder="New category" maxlength="30" aria-label="New category"><button class="btn" type="submit">Add</button></form>`}
+  </div>`;
+}
+
+/* ---------- expense form ---------- */
+let itemSeq=0;
+/* an item is unit price × quantity; amount is always the line total */
+const mkItem=(name="",amount=0,who=[],qty=1)=>{qty=Math.max(1,Math.round(+qty||1));const amt=Math.round(+amount||0);const price=Math.round(amt/qty);
+  return {k:"i"+(++itemSeq),name,qty,price,amount:amt,who:new Set(who)};};
+const mkCharge=(label="",amount=0,less=false)=>({k:"c"+(++itemSeq),label,amount:Math.round(+amount||0),less:!!less});
+function openForm(x,opts={}){
+  if(!S.members.length){S.tab="members";renderAll();toast("Add your group members first.");return;}
+  const ids=S.members.map(m=>m.id);
+  const presetEv=S.f.event&&S.f.event!=="_none"&&evt(S.f.event)&&!evt(S.f.event).closed?S.f.event:"";
+  S.form=x?{id:x.id,date:x.date,desc:x.desc||"",cat:x.cat,amount:+x.amount||0,paidBy:x.paidBy,split:x.split||"equal",eventId:evOf(x),evManual:true,
+      inc:new Set(Object.keys(x.shares||{})),custom:Object.fromEntries(Object.entries(x.shares||{}).map(([k,s])=>[k,+s.amount||0])),
+      items:Array.isArray(x.items)?x.items.map(it=>mkItem(it.name,it.amount,it.who||[],it.qty)):[],charges:Array.isArray(x.charges)?x.charges.map(c=>mkCharge(c.label,c.amount,c.less)):[],amountLinked:false,note:x.note||"",orig:x,receipt:x.receipt||null,scan:{state:x.receipt?"kept":"idle"}}
+    :{id:null,date:today(),desc:"",cat:S.f.cat||cats()[0],amount:0,paidBy:S.f.person||ids[0],split:"equal",eventId:presetEv||autoEvent(today()),evManual:!!presetEv,
+      inc:new Set(ids),custom:{},items:[],charges:[],amountLinked:true,note:"",receipt:null,scan:{state:"idle"}};
+  const f=S.form;
+  $("#modal-root").innerHTML=`<div class="overlay" data-act="overlay"><form class="modal" id="xform" role="dialog" aria-modal="true" aria-labelledby="xf-title" novalidate>
+    <header><h2 id="xf-title">${f.id?"Edit expense":"Add expense"}</h2><button type="button" class="btn ghost sm" data-act="close">Close</button></header>
+    <div class="body">
+      ${S.readOnly?"":`<div id="xf-scan"></div><input type="file" id="xf-file" accept="image/*" hidden>`}
+      <div class="fld"><label for="xf-desc">What was it for?</label><input class="ctl" id="xf-desc" value="${esc(f.desc)}" placeholder="e.g. Dinner at Sate Khas Senayan" maxlength="80"></div>
+      <div class="row2">
+        <div class="fld"><label for="xf-amount">Total amount</label><div class="amtwrap"><span>Rp</span><input class="ctl num" id="xf-amount" inputmode="numeric" value="${f.amount?nf.format(f.amount):""}" placeholder="0"></div></div>
+        <div class="fld"><label for="xf-date">Date</label><input class="ctl" type="date" id="xf-date" value="${esc(f.date)}"></div>
+      </div>
+      <div class="row2">
+        <div class="fld"><label for="xf-cat">Category</label><select class="ctl" id="xf-cat"></select></div>
+        <div class="fld"><label for="xf-event">Event</label><select class="ctl" id="xf-event"></select></div>
+      </div>
+      <div class="fld"><label for="xf-payer">Paid by</label><select class="ctl" id="xf-payer">${S.members.map(m=>`<option value="${esc(m.id)}" ${m.id===f.paidBy?"selected":""}>${esc(m.name)}</option>`).join("")}</select></div>
+      <div class="sechead"><span class="label">Split</span>
+        <div class="seg" role="group" aria-label="Split method" id="xf-seg"></div></div>
+      <div id="xf-split"></div>
+      <div class="fld"><label for="xf-note">Note (optional)</label><input class="ctl" id="xf-note" value="${esc(f.note)}" maxlength="140" placeholder="e.g. includes 10% PB1 and 5% service"></div>
+      <div class="err" id="xf-err" hidden></div>
+    </div>
+    <footer><span class="small muted" id="xf-hint"></span><div style="display:flex;gap:8px"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary" id="xf-save">${f.id?"Save changes":"Add expense"}</button></div></footer>
+  </form></div>`;
+  fillFormSelects();renderScan();renderSeg();renderSplit();
+  if(opts.scan){$("#xf-file")?.click();}
+  else setTimeout(()=>$("#xf-desc")?.focus(),30);
+}
+function fillFormSelects(){
+  const f=S.form;
+  $("#xf-cat").innerHTML=[...new Set([...cats(),f.cat].filter(Boolean))].map(c=>`<option ${c===f.cat?"selected":""}>${esc(c)}</option>`).join("");
+  const evs=sortedEvents().filter(e=>!e.closed||e.id===f.eventId);
+  $("#xf-event").innerHTML=`<option value="">No event</option>`+evs.map(e=>`<option value="${esc(e.id)}" ${e.id===f.eventId?"selected":""}>${esc(e.name)}</option>`).join("");
+}
+function renderSeg(){
+  const f=S.form;const el=$("#xf-seg");if(!el)return;
+  el.innerHTML=[["equal","Equally"],["custom","Custom amounts"],["items","By items"]].map(([k,l])=>`<button type="button" data-act="split" data-id="${k}" aria-pressed="${f.split===k}">${l}</button>`).join("");
+}
+function renderScan(){
+  const el=$("#xf-scan");if(!el)return;setTimeout(()=>hydratePhotos(el),0);const f=S.form;const sc=f.scan;
+  const prev=sc.preview||"";const rpath=!sc.preview&&f.receipt&&f.receipt.path?f.receipt.path:"";
+  if(sc.state==="busy"){el.className="scan";el.innerHTML=`${prev?`<img src="${esc(prev)}" alt="">`:`<div class="ico">${ico.scan}</div>`}<div class="txt"><b><span class="spin"></span>Reading the bill…</b><span class="small muted">${esc(sc.progress||"This takes a few seconds.")}</span></div><div class="acts"><button type="button" class="btn sm" data-act="scan-cancel">Cancel</button></div>`;return;}
+  if(sc.state==="done"){el.className="scan done";el.innerHTML=`${prev?`<img src="${esc(prev)}" alt="Bill" data-act="lightbox" data-src="${esc(prev)}" style="cursor:zoom-in">`:`<div class="ico">${ico.scan}</div>`}<div class="txt"><b>Filled in from the bill</b><span class="small muted">${esc(sc.msg||"Check the details below before saving.")}</span></div><div class="acts"><button type="button" class="btn sm" data-act="scan-pick">Use another photo</button>${sc.preview?`<button type="button" class="btn sm ghost" data-act="scan-clear">Remove photo</button>`:""}</div>`;return;}
+  if(sc.state==="kept"){el.className="scan done";el.innerHTML=`${prev?`<img src="${esc(prev)}" alt="Bill" data-act="lightbox" data-src="${esc(prev)}" style="cursor:zoom-in">`:rpath?`<img data-rpath="${esc(rpath)}" alt="Bill" data-act="lightbox" style="cursor:zoom-in">`:""}<div class="txt"><b>Bill photo attached</b><span class="small muted">Tap the photo to view it.</span></div><div class="acts"><button type="button" class="btn sm" data-act="scan-pick">Scan another photo</button><button type="button" class="btn sm ghost" data-act="scan-clear">Remove photo</button></div>`;return;}
+  if(sc.state==="paste"){el.className="scan";el.style.flexDirection="column";el.style.alignItems="stretch";
+    el.innerHTML=`<label class="label" for="xf-paste">Paste the bill text</label><textarea class="ctl pastebox" id="xf-paste" placeholder="Paste text copied from a bill photo, an e-receipt or a GoFood / GrabFood order"></textarea><div class="acts"><button type="button" class="btn sm primary" data-act="scan-text">Read text</button><button type="button" class="btn sm ghost" data-act="scan-idle">Back</button></div>`;return;}
+  el.style.flexDirection="";el.style.alignItems="";
+  el.className="scan"+(sc.state==="error"?" bad":"");
+  el.innerHTML=`<div class="ico">${ico.scan}</div><div class="txt"><b>${sc.state==="error"?"Couldn't read that bill":"Scan a bill"}</b><span class="small ${sc.state==="error"?"":"muted"}">${esc(sc.state==="error"?sc.msg:"Upload or drop a photo. The amount, date, category and items are filled in for you. The first scan loads the text reader (about 7 MB).")}</span></div>
+    <div class="acts"><button type="button" class="btn sm primary" data-act="scan-pick">${sc.state==="error"?"Try another photo":"Upload photo"}</button><button type="button" class="btn sm ghost" data-act="scan-paste">Paste text</button></div>`;
+}
+
+/* ---- by-items split: each person pays for the items they had, plus the bill's charges (service, PB1/PPN, discounts)
+   at the same percentage the bill applies, so people who had nothing pay nothing ---- */
+const lineTotal=it=>it.qty>1&&it.price?`${it.qty} × ${rp(it.price)} = <b>${rp(it.amount)}</b>`:it.amount?`<b>${rp(it.amount)}</b>`:"";
+function setItem(it,{price,qty}){if(price!=null)it.price=Math.max(0,price);if(qty!=null)it.qty=Math.max(1,Math.min(999,qty));it.amount=it.price*it.qty;
+  const el=$("#xi-t-"+it.k);if(el)el.innerHTML=lineTotal(it);const dn=document.querySelector(`[data-act="item-qty"][data-id="${it.k}"][data-d="-1"]`);if(dn)dn.disabled=it.qty<=1;}
+function taggedPeople(){const s=new Set();S.form.items.forEach(it=>{if(+it.amount)it.who.forEach(i=>s.add(i));});return S.members.map(m=>m.id).filter(i=>s.has(i));}
+function itemSubtotals(){
+  const f=S.form;const all=S.members.map(m=>m.id);const tagged=taggedPeople();const fallback=tagged.length?tagged:all;
+  const sub={};let isum=0,untagged=0;
+  f.items.forEach(it=>{const a=+it.amount||0;if(!a)return;isum+=a;if(!it.who.size)untagged++;
+    const w=it.who.size?all.filter(i=>it.who.has(i)):fallback;if(!w.length)return;
+    const base=Math.floor(a/w.length);let rem=a-base*w.length;w.forEach(i=>{sub[i]=(sub[i]||0)+base+(rem>0?1:0);if(rem>0)rem--;});});
+  return {sub,isum,fallback,tagged,untagged};
+}
+const chargeList=()=>S.form.charges.filter(c=>+c.amount>0).map(c=>Object.assign({},c,{signed:(c.less?-1:1)*(+c.amount)}));
+const chargeSum=()=>chargeList().reduce((a,c)=>a+c.signed,0);
+function chargePcts(isum){const out={};let base=isum;S.form.charges.forEach(c=>{const a=+c.amount||0;out[c.k]=base&&a?a/base*100:0;if(!c.less)base+=a;});return out;}
+const fmtPct=p=>p?(Math.round(p*10)/10).toString().replace(".",",")+"%":"";
+function syncItemsTotal(){
+  const f=S.form;if(f.split!=="items"||!f.amountLinked)return;
+  const {isum}=itemSubtotals();const t=Math.max(0,isum+chargeSum());
+  if(t!==f.amount){f.amount=t;const el=$("#xf-amount");if(el)el.value=t?nf.format(t):"";}
+}
+function itemsBreakdown(){
+  const f=S.form;const {sub,isum,fallback,tagged,untagged}=itemSubtotals();
+  const charges=chargeList();const csum=charges.reduce((a,c)=>a+c.signed,0);const total=f.amount;const other=total-isum-csum;
+  const ids=S.members.map(m=>m.id).filter(i=>sub[i]);
+  const pays={};let tot=0;
+  if(isum&&total){ids.forEach(i=>{pays[i]=Math.round(total*sub[i]/isum);tot+=pays[i];});
+    const diff=total-tot;if(diff&&ids.length){const top=ids.slice().sort((a,b)=>pays[b]-pays[a])[0];pays[top]+=diff;}}
+  const rows=ids.map(i=>({id:i,items:sub[i],charges:charges.map(c=>Math.round(c.signed*sub[i]/isum)),other:Math.round(other*sub[i]/isum),pays:pays[i]||0}));
+  return {rows,charges,other,isum,total,fallback,tagged,untagged};
+}
+function computeShares(){
+  const f=S.form;const out={};
+  if(f.split==="equal"){
+    const ids=S.members.map(m=>m.id).filter(id=>f.inc.has(id));const n=ids.length;if(!n||!f.amount)return out;
+    const base=Math.floor(f.amount/n);let rem=f.amount-base*n;ids.forEach(id=>{out[id]=base+(rem>0?1:0);if(rem>0)rem--;});
+  }else if(f.split==="custom"){S.members.forEach(m=>{const v=+f.custom[m.id]||0;if(v>0)out[m.id]=v;});}
+  else{const b=itemsBreakdown();if(!b.isum||!b.total)return out;b.rows.forEach(r=>{if(r.pays>0)out[r.id]=r.pays;});}
+  return out;
+}
+function whoLabel(it){
+  if(it.who.size)return "Had by:";
+  const {tagged}=itemSubtotals();
+  return tagged.length?`Not tagged · shared by ${tagged.map(mname).join(", ")} · or pick:`:"Who had this?";
+}
+function renderSplit(){
+  const f=S.form;const el=$("#xf-split");if(!el)return;
+  const paidTag=id=>id===f.paidBy?' <span class="small muted">(paid)</span>':"";
+  if(f.split==="items"){
+    if(!f.items.length)f.items.push(mkItem());
+    el.innerHTML=`<div class="items">${f.items.map(it=>`<div class="item ${it.who.size||!+it.amount?"":"untagged"}" data-k="${it.k}">
+      <input class="ctl" data-iname="${it.k}" id="xi-n-${it.k}" value="${esc(it.name)}" placeholder="Item, e.g. Nasi goreng" aria-label="Item name">
+      <div class="amtwrap"><span>Rp</span><input class="ctl num" data-iamt="${it.k}" id="xi-a-${it.k}" inputmode="numeric" value="${it.price?nf.format(it.price):""}" placeholder="Price" aria-label="Price per item"></div>
+      <div class="qty" role="group" aria-label="Quantity"><button type="button" data-act="item-qty" data-id="${it.k}" data-d="-1" aria-label="One less" ${it.qty<=1?"disabled":""}>−</button><span class="qx">×</span><input class="num" data-iqty="${it.k}" id="xi-q-${it.k}" inputmode="numeric" value="${it.qty}" aria-label="Quantity"><button type="button" data-act="item-qty" data-id="${it.k}" data-d="1" aria-label="One more">+</button></div>
+      <button type="button" class="x" data-act="item-del" data-id="${it.k}" aria-label="Remove item">×</button>
+      <div class="who"><span class="small muted wl" style="margin-right:4px">${esc(whoLabel(it))}</span>${S.members.map(m=>`<button type="button" class="wchip" data-act="item-who" data-id="${it.k}" data-m="${esc(m.id)}" aria-pressed="${it.who.has(m.id)}">${av(m.id,"sm")}${esc(m.name)}</button>`).join("")}<span class="ltot num" id="xi-t-${it.k}">${lineTotal(it)}</span></div>
+    </div>`).join("")}</div>
+    <button type="button" class="btn sm" data-act="item-add" style="margin-top:8px">+ Add item</button>
+    <div class="label" style="margin-top:16px">Charges on the bill</div>
+    <p class="small muted" style="margin:2px 0 8px">Each person pays these at the bill's rate on their own items.</p>
+    <div class="charges" id="xf-charges">${f.charges.map(c=>`<div class="charge">
+      <input class="ctl" data-clabel="${c.k}" id="xc-l-${c.k}" value="${esc(c.label)}" aria-label="Charge name">
+      <span class="pct num small muted" id="cp-${c.k}"></span>
+      <div class="amtwrap"><span>${c.less?"−Rp":"Rp"}</span><input class="ctl num" data-camt="${c.k}" id="xc-a-${c.k}" inputmode="numeric" value="${c.amount?nf.format(c.amount):""}" placeholder="0" aria-label="${esc(c.label)} amount" style="${c.less?"padding-left:42px":""}"></div>
+      <button type="button" class="x" data-act="charge-del" data-id="${c.k}" aria-label="Remove ${esc(c.label)}">×</button></div>`).join("")}</div>
+    <div class="ctrls" style="margin-top:8px">
+      <button type="button" class="btn sm" data-act="charge-add" data-id="sc">+ Service 5%</button>
+      <button type="button" class="btn sm" data-act="charge-add" data-id="pb1">+ PB1 10%</button>
+      <button type="button" class="btn sm" data-act="charge-add" data-id="ppn">+ PPN 11%</button>
+      <button type="button" class="btn sm" data-act="charge-add" data-id="disc">+ Discount</button>
+      <button type="button" class="btn sm ghost" data-act="charge-add" data-id="other">+ Other</button>
+    </div>
+    <div class="alloc" id="xf-alloc" style="margin-top:12px"></div><div class="tbl-wrap" id="xf-result"></div>`;
+  }else if(f.split==="equal"){
+    el.innerHTML=`<div class="parts">${S.members.map(m=>`<label class="part"><input type="checkbox" data-inc="${esc(m.id)}" ${f.inc.has(m.id)?"checked":""}><span class="nm">${av(m.id,"sm")}${esc(m.name)}${paidTag(m.id)}</span><span class="val num small"></span></label>`).join("")}</div><div class="alloc" id="xf-alloc" style="margin-top:8px"></div>`;
+  }else{
+    el.innerHTML=`<div class="parts">${S.members.map(m=>`<div class="part"><span>${av(m.id,"sm")}</span><label class="nm" for="xc-${esc(m.id)}">${esc(m.name)}${paidTag(m.id)}</label><div class="amtwrap"><span>Rp</span><input class="ctl num" id="xc-${esc(m.id)}" data-cus="${esc(m.id)}" inputmode="numeric" value="${f.custom[m.id]?nf.format(f.custom[m.id]):""}" placeholder="0"></div></div>`).join("")}</div><div class="alloc" id="xf-alloc" style="margin-top:8px"></div>`;
+  }
+  updateAlloc();
+}
+function updateAlloc(){
+  const f=S.form;const el=$("#xf-alloc");if(!el)return;
+  if(f.split==="items")syncItemsTotal();
+  const sh=computeShares();
+  if(f.split==="equal"){const n=f.inc.size;el.className="alloc"+(n?"":" bad");
+    el.textContent=n?`${n} ${n===1?"person":"people"} · ${f.amount?"about "+rp(f.amount/n)+" each":"enter the total amount"}`:"Pick at least one person.";
+    document.querySelectorAll("#xf-split [data-inc]").forEach(cb=>{const v=cb.closest(".part").querySelector(".val");v.textContent=f.inc.has(cb.dataset.inc)?rp(sh[cb.dataset.inc]||0):"—";v.classList.toggle("muted",!f.inc.has(cb.dataset.inc));});
+    return;}
+  if(f.split==="custom"){
+    const sum=Object.values(sh).reduce((a,b)=>a+b,0);const left=f.amount-sum;
+    el.className="alloc "+(left===0&&sum>0?"ok":"bad");
+    el.innerHTML=`<span>Allocated <b class="num">${esc(rp(sum))}</b> of <b class="num">${esc(rp(f.amount))}</b> · ${left===0?(sum?"fully split":"enter amounts"):left>0?esc(rp(left))+" left to assign":esc(rp(-left))+" over the total"}</span>${left>0&&f.amount?`<button type="button" class="btn sm" data-act="fill-rest">Give rest to ${esc(mname(f.paidBy))}</button>`:""}`;
+    return;}
+  const b=itemsBreakdown();const res=$("#xf-result");
+  const pc=chargePcts(b.isum);f.charges.forEach(c=>{const s=$("#cp-"+c.k);if(s)s.textContent=fmtPct(pc[c.k]);});
+  document.querySelectorAll("#xf-split .item").forEach(row=>{const it=f.items.find(i=>i.k===row.dataset.k);if(!it)return;const wl=row.querySelector(".wl");if(wl)wl.textContent=whoLabel(it);row.classList.toggle("untagged",!it.who.size&&!!+it.amount);});
+  if(!b.isum){el.className="alloc bad";el.textContent="Add items with amounts.";res.innerHTML="";return;}
+  if(!b.total){el.className="alloc bad";el.textContent="Enter the bill total.";res.innerHTML="";return;}
+  const csum=b.charges.reduce((a,c)=>a+c.signed,0);
+  const warn=b.untagged&&!b.tagged.length?`Tag who had each item. Untagged items are split across all ${S.members.length} members.`:"";
+  el.className="alloc "+(warn?"bad":"ok");
+  el.innerHTML=`<span>Items <b class="num">${esc(rp(b.isum))}</b>${b.charges.length?` · Charges <b class="num">${csum<0?"−":""}${esc(rp(Math.abs(csum)))}</b>`:""}${b.other?` · Rounding / other <b class="num">${b.other<0?"−":""}${esc(rp(Math.abs(b.other)))}</b>`:""} · Total <b class="num">${esc(rp(b.total))}</b></span>`+
+    (b.other&&!f.amountLinked?`<button type="button" class="btn sm" data-act="link-total">Set total to ${esc(rp(b.isum+csum))}</button>`:"")+(warn?`<span style="flex-basis:100%">${esc(warn)}</span>`:"");
+  const head=`<tr><th>Person</th><th>Items</th>${b.charges.map(c=>`<th>${esc(c.label||"Charge")}${pc[c.k]?" "+fmtPct(pc[c.k]):""}</th>`).join("")}${b.other?"<th>Other</th>":""}<th>Pays</th></tr>`;
+  const sgn=v=>(v<0?"−":"")+rp(Math.abs(v));
+  res.innerHTML=`<table class="brk"><thead>${head}</thead><tbody>${b.rows.map(r=>`<tr><td><span class="namecell">${av(r.id,"sm")}${esc(mname(r.id))}</span></td><td class="num">${esc(rp(r.items))}</td>${r.charges.map(v=>`<td class="num muted">${esc(sgn(v))}</td>`).join("")}${b.other?`<td class="num muted">${esc(sgn(r.other))}</td>`:""}<td class="num"><b>${esc(rp(r.pays))}</b></td></tr>`).join("")}</tbody></table>`;
+}
+function readFormFields(){
+  const f=S.form;f.desc=$("#xf-desc").value.trim();f.date=$("#xf-date").value;f.cat=$("#xf-cat").value;f.paidBy=$("#xf-payer").value;f.note=$("#xf-note").value.trim();f.eventId=$("#xf-event").value;
+}
+async function submitForm(){
+  const f=S.form;const err=$("#xf-err");readFormFields();if(f.split==="items")syncItemsTotal();
+  if(f.scan.state==="busy"){err.hidden=false;err.textContent="Wait for the bill to finish reading, or cancel the scan.";return;}
+  const sh=computeShares();const sum=Object.values(sh).reduce((a,b)=>a+b,0);
+  let msg="";
+  if(!f.desc)msg="Add a short description, like “Groceries at Superindo”.";
+  else if(!f.amount)msg="Enter the total amount paid.";
+  else if(!f.date)msg="Pick the date of the expense.";
+  else if(!Object.keys(sh).length)msg=f.split==="items"?"Add at least one item with an amount.":"Choose who shares this expense.";
+  else if(sum!==f.amount)msg=`The split adds up to ${rp(sum)} but the bill is ${rp(f.amount)}. Adjust the amounts so they match.`;
+  if(msg){err.hidden=false;err.textContent=msg;return;}
+  const btn=$("#xf-save");btn.disabled=true;
+  let receipt=f.receipt||null;
+  if(f.scan.blob&&S.assets){
+    btn.textContent="Saving photo…";
+    try{const r=await S.assets.upload(f.scan.blob);receipt={path:r.path};}
+    catch(e){console.warn(e);toast("The bill photo couldn't be saved, but the expense was.");}
+  }
+  const prev=f.orig?.shares||{};const shares={};
+  Object.entries(sh).forEach(([mid,amt])=>{const p=prev[mid];const keep=p&&+p.amount===amt&&p.paid;
+    shares[mid]={amount:amt,paid:mid===f.paidBy?true:!!keep,paidAt:mid===f.paidBy?"":(keep?p.paidAt||"":"")};});
+  const id=f.id||uid();
+  const doc={date:f.date,desc:f.desc,cat:f.cat,amount:f.amount,paidBy:f.paidBy,split:f.split,shares,note:f.note,eventId:f.eventId||"",
+    createdAt:f.orig?.createdAt||Date.now(),updatedAt:Date.now()};
+  if(f.split==="items"){doc.items=f.items.filter(it=>it.amount>0).map(it=>({name:it.name||"Item",amount:it.amount,qty:it.qty,price:it.price,who:[...it.who]}));
+    doc.charges=f.charges.filter(c=>c.amount>0).map(c=>({label:c.label||(c.less?"Discount":"Charge"),amount:c.amount,less:!!c.less}));}
+  if(receipt)doc.receipt=receipt;
+  closeModal();
+  if(await put("expenses",id,doc))toast(f.id?"Expense updated":"Expense added: "+rp(doc.amount)+(doc.eventId?" · "+evName(doc.eventId):""));
+}
+function closeModal(){
+  if(S.form?.scan?.ctrl)try{S.form.scan.ctrl.abort();}catch(e){}
+  if(S.form?.scan?.preview)try{URL.revokeObjectURL(S.form.scan.preview);}catch(e){}
+  S.form=null;S.evform=null;$("#modal-root").innerHTML="";
+}
+
+/* ---------- bill scanning ---------- */
+async function prepImage(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=new Image();await new Promise((r,j)=>{img.onload=r;img.onerror=j;img.src=url;});
+    const max=1600;const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.round(img.naturalWidth*s),h=Math.round(img.naturalHeight*s);
+    const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+    const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
+    const dataUrl=c.toDataURL("image/jpeg",0.85);
+    return {canvas:c,blob,b64:dataUrl.split(",")[1],dataUrl,preview:URL.createObjectURL(blob)};
+  }finally{URL.revokeObjectURL(url);}
+}
+/* grayscale + contrast stretch, optional upscale: thermal receipts read far better this way */
+function ocrCanvas(src,{contrast=true,scale=1}={}){
+  const w=Math.round(src.width*scale),h=Math.round(src.height*scale);
+  const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d",{willReadFrequently:true});
+  ctx.imageSmoothingQuality="high";ctx.drawImage(src,0,0,w,h);
+  const d=ctx.getImageData(0,0,w,h);const p=d.data;const hist=new Uint32Array(256);
+  for(let i=0;i<p.length;i+=4){const g=(p[i]*299+p[i+1]*587+p[i+2]*114)/1000|0;p[i]=g;hist[g]++;}
+  let lo=0,hi=255;
+  if(contrast){const n=w*h,cut=n*0.02;let acc=0;for(lo=0;lo<255&&(acc+=hist[lo])<cut;lo++);acc=0;for(hi=255;hi>0&&(acc+=hist[hi])<cut;hi--);if(hi<=lo){lo=0;hi=255;}}
+  const k=255/(hi-lo||1);
+  for(let i=0;i<p.length;i+=4){const v=Math.max(0,Math.min(255,(p[i]-lo)*k));p[i]=p[i+1]=p[i+2]=v;}
+  ctx.putImageData(d,0,0);return c;
+}
+let tessP=null;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("Couldn't load "+src));document.head.appendChild(s);});}
+function getTess(){
+  if(!tessP){
+    tessP=(async()=>{
+      const base=new URL("tess/",document.baseURI).href;
+      if(!window.Tesseract)await loadScript(base+"tesseract.min.js");
+      // artifacts can't serve .gz files, so the language data ships as .wasm and the worker's fetch is pointed at it
+      const shim=`const __f=self.fetch.bind(self);self.fetch=(u,o)=>__f(String(u).replace(/eng\\.traineddata\\.gz(\\?.*)?$/,"eng-traineddata.wasm"),o);importScripts(${JSON.stringify(base+"worker.min.js")});`;
+      const workerPath=URL.createObjectURL(new Blob([shim],{type:"text/javascript"}));
+      const w=await window.Tesseract.createWorker("eng",1,{workerPath,workerBlobURL:false,corePath:base,langPath:base.replace(/\/$/,""),cacheMethod:"none",
+        logger:m=>{if(S.ocrProgress)S.ocrProgress(m);}});
+      await w.setParameters({tessedit_pageseg_mode:"6",preserve_interword_spaces:"1"});
+      return w;})();
+    tessP.catch(()=>{tessP=null;});
+  }
+  return tessP;
+}
+async function ocrBill(canvas,setMsg){
+  S.ocrProgress=m=>{if(!m||!m.status)return;const pct=Math.round((m.progress||0)*100);
+    if(/load|init/i.test(m.status))setMsg("Loading the text reader… "+(pct?pct+"%":""));else if(/recogn/i.test(m.status))setMsg("Reading text on the bill… "+pct+"%");};
+  const w=await getTess();
+  const variants=[{contrast:true,scale:1},{contrast:false,scale:1},{contrast:true,scale:1.6}];
+  let best=null;
+  for(const v of variants){
+    const {data}=await w.recognize(ocrCanvas(canvas,v));
+    const parsed=parseBill(data.text||"");
+    const score=(parsed.consistent?1000:0)+parsed.items.length*10+(parsed.total?5:0);
+    if(!best||score>best.score)best={text:data.text||"",parsed,score};
+    if(parsed.consistent)break;
+  }
+  S.ocrProgress=null;
+  return best;
+}
+/* reads Indonesian bill text: items with line totals, subtotal, SC / service, PB1 / PPN tax, discounts, grand total */
+function parseBill(text){
+  const lines=String(text).split(/\r?\n/).map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean);
+  const tail=l=>{const m=l.match(/(-)?\s*(?:rp\.?\s*)?(\d{1,3}(?:[.,]\d{3})+|\d{4,})(?:[.,](\d{2}))?\s*-?\s*$/i);
+    if(!m||/\d[-\/.]$/.test(l.slice(0,m.index)))return null;return {amount:parseInt(m[2].replace(/[.,]/g,""),10),rest:l.slice(0,m.index).replace(/[\s:;=+©®*#~_.,\-]+$/,"").trim()};};
+  const items=[];let subtotal=0,total=0,tax=0,service=0,discount=0,ended=false,pendingName="",taxLabel="Tax";
+  for(const l of lines){
+    const t=tail(l);const low=(t?t.rest:l).toLowerCase();const letters=low.replace(/[^a-z]/g,"");
+    if(!t){if(!ended&&/[a-z]{3}/i.test(l)&&!/:/.test(l)&&!/\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4}/.test(l))pendingName=l;else pendingName="";continue;}
+    if(/sub\s*-?\s*tot/.test(low)){subtotal=t.amount;ended=true;continue;}
+    if(/disc|diskon|potongan|promo|voucher|hemat/.test(low)){discount+=t.amount;ended=true;continue;}
+    if(/pb\s*[1iltj!|]|ppn|\btax|pajak|\bvat/.test(low)){tax+=t.amount;taxLabel=/ppn/.test(low)?"Tax (PPN)":/pb/.test(low)?"Tax (PB1)":"Tax";ended=true;continue;}
+    if(/service|svc|\bserv|layanan/.test(low)||/^s[co0][a-z]?$/.test(letters)){service+=t.amount;ended=true;continue;}
+    if(/(grand|brand|crand|g\.)\s*t[o0]t|^t[o0]tal|\btotal\b|jumlah|tagihan|amount due|total bayar/.test(low)){if(/grand|brand|crand/.test(low)||!total)total=t.amount;ended=true;continue;}
+    if(/cash|tunai|change|kembali|bayar|paid|debit|credit|kartu|card|qris|ovo|gopay|dana|shopee|items?\b|qty|rounding|pembulatan|dpp|\btip\b|npwp|telp|phone|no\.|#/.test(low))continue;
+    if(ended)continue;
+    let rest=t.rest;
+    if(!/[a-z]{2}/i.test(rest)){if(pendingName)rest=pendingName+" "+rest;else continue;}
+    pendingName="";
+    const q=rest.match(/^([0-9]{1,2}|[iIl!|]{1,2}|Hl|i!)\s*[xX]?\s+(?=[A-Za-z])/);let qty=1;
+    if(q){qty=/^\d+$/.test(q[1])?Math.max(1,parseInt(q[1],10)):1;rest=rest.slice(q[0].length);}
+    rest=rest.replace(/@\s*[\d.,]+/,"").replace(/\b\d+\s*[xX]\s*[\d.,]*/,"").replace(/^[^A-Za-z0-9]+/,"").replace(/[^A-Za-z0-9)%]+$/,"").trim();
+    if(!rest)continue;
+    items.push({name:rest.replace(/\b([A-Z])([A-Z]+)\b/g,(m,a,b)=>a+b.toLowerCase()).slice(0,60),amount:t.amount,qty});
+  }
+  const isum=items.reduce((a,b)=>a+b.amount,0);const sub=subtotal||isum;
+  if(sub&&total){ // repair a misread tax/service digit using common rates (SC 5-10%, PB1 10%, PPN 11%)
+    const ok=v=>Math.abs(v-total)<=Math.max(5,total*.0005);
+    if(!ok(sub+tax+service-discount)){let best=null;
+      const tc=tax?[tax,Math.round(sub*.1),Math.round((sub+service)*.1),Math.round(sub*.11),Math.round((sub+service)*.11)]:[0];
+      const sc=service?[service,Math.round(sub*.05),Math.round(sub*.1),Math.round(sub*.075)]:[0];
+      for(const s2 of sc)for(const t2 of tc){const d=Math.abs(sub+t2+s2-discount-total);if(d<=total*.003&&(!best||d<best.d))best={d,t2,s2};}
+      if(best){tax=best.t2;service=best.s2;}}
+  }
+  if(tax&&service){const t3=Math.round((sub+service)*.1),a=String(t3),b=String(tax);if(t3!==tax&&a.length===b.length&&[...a].filter((c,i)=>c!==b[i]).length===1)tax=t3;}
+  const computed=sub+tax+service-discount;
+  if(!total||total<sub*0.5)total=computed;
+  else if(computed&&total%100!==0&&Math.abs(total-computed)<=computed*0.02&&(tax||service||discount))total=computed;
+  const pad2=n=>String(n).padStart(2,"0");
+  const mk=(y,m,d)=>{y=+y;if(y<100)y+=2000;m=+m;d=+d;if(m>12&&d<=12)[m,d]=[d,m];if(m<1||m>12||d<1||d>31||y<2000||y>2100)return "";return y+"-"+pad2(m)+"-"+pad2(d);};
+  let date="";const d1=text.match(/\b(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})\b/),d2=text.match(/\b(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4}|\d{2})\b/);
+  if(d1)date=mk(d1[1],d1[2],d1[3]);else if(d2)date=mk(d2[3],d2[2],d2[1]);
+  if(!date){const MON={jan:1,feb:2,mar:3,apr:4,mei:5,may:5,jun:6,jul:7,agu:8,agt:8,aug:8,sep:9,okt:10,oct:10,nov:11,des:12,dec:12};
+    const mm=String(text).toLowerCase().match(/\b(\d{1,2})\s*(jan|feb|mar|apr|mei|may|jun|jul|agu|agt|aug|sep|okt|oct|nov|des|dec)[a-z]*\.?\s*(\d{4})\b/);if(mm)date=mk(mm[3],MON[mm[2]],mm[1]);}
+  let merchant="";for(const l of lines.slice(0,6)){const c=l.replace(/^[^A-Za-z0-9]*(?:[a-z]{1,3}\.{2,}\s*)?/,"").trim();
+    if(/[A-Za-z]{3}/.test(c)&&!/:/.test(c)&&!/\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4}/.test(c)&&!/^(date|time|tanggal|jam|kasir|cashier|table|meja)\b/i.test(c)){merchant=c.slice(0,80);break;}}
+  const hay=(merchant+" "+items.map(i=>i.name).join(" ")).toLowerCase();
+  const rules=[["Food & Drinks",/coffee|kopi|cafe|café|resto|restaurant|bakery|warung|\bbar\b|mie|nasi|ayam|sate|latte|matcha|cake|\btea\b|pizza|burger|bakso|soto|sushi|ramen|grill|kitchen|dimsum|boba|chicken|steak/],
+    ["Groceries",/indomaret|alfamart|alfamidi|superindo|hypermart|lotte ?mart|ranch|grand lucky|carrefour|transmart|supermarket|grocer|minimarket|giant|farmers/],
+    ["Transport",/grab|gojek|taxi|taksi|bluebird|parkir|parking|\btol\b|toll|pertamina|shell|bensin|\bmrt\b|\bkrl\b|transjakarta/],
+    ["Rent & Bills",/\bpln\b|listrik|pdam|indihome|internet|wifi|sewa|\brent\b|telkomsel|pulsa|biznet|first media/],
+    ["Travel",/hotel|airbnb|villa|resort|traveloka|tiket\.com|garuda|airasia|lion air|citilink|hostel/],
+    ["Entertainment",/cinema|\bxxi\b|\bcgv\b|cinepolis|karaoke|netflix|spotify|bowling/],
+    ["Health",/apotek|pharmacy|kimia farma|guardian|watsons|clinic|klinik|hospital|rumah sakit|dokter/],
+    ["Shopping",/uniqlo|zara|ace hardware|ikea|informa|miniso|matahari/]];
+  let category="";for(const [c,re] of rules){if(re.test(hay)&&cats().includes(c)){category=c;break;}}
+  const consistent=items.length>0&&total>0&&(!subtotal||subtotal===isum)&&Math.abs(total-computed)<=Math.max(1000,total*0.01);
+  return {merchant,date,total,items,isum,subtotal,tax,service,discount,taxLabel,category,consistent};
+}
+function billPrompt(src){
+  return `You read bills and receipts for a shared-expense tracker used in Indonesia.
+Amounts are Indonesian Rupiah (IDR). On Indonesian bills "." or "," are thousands separators: "45.000" = 45000, "Rp 1,250,000" = 1250000. Drop any cents.
+${src}
+Return ONLY a JSON object, no prose, with this shape:
+{"merchant": string, "date": "YYYY-MM-DD" or null, "total": integer, "items": [{"name": string, "qty": number, "amount": integer}], "tax": integer, "service": integer, "discount": integer, "category": string}
+Rules:
+- "amount" is the line total for the item (quantity × unit price), not the unit price.
+- "total" is the final amount paid, including tax (PB1/PPN) and service charge, after discounts and rounding.
+- "tax", "service", "discount" are 0 when absent. "discount" is a positive number.
+- Check the arithmetic: items should add up to the subtotal, and subtotal + service + tax − discount should equal the total. Use this to fix misread digits.
+- Keep item names short, as printed. Skip lines that are subtotals, payments, change or cashier info.
+- "category" must be exactly one of: ${JSON.stringify(cats())}.
+- Dates on Indonesian bills are day-month-year. If the date is unclear use null. Today is ${today()}.
+- If this is not a bill or receipt, return {"error": "not a bill"}.`;
+}
+function normalizeBill(r){
+  if(!r||typeof r!=="object")throw {code:"parse"};
+  if(r.error)throw {code:"notbill"};
+  const n=v=>Math.max(0,Math.round(typeof v==="string"?digits(v):(+v||0)));
+  const items=(Array.isArray(r.items)?r.items:[]).map(it=>({name:String(it?.name||"Item").slice(0,60),amount:n(it?.amount),qty:Math.max(1,Math.round(+it?.qty||1))})).filter(it=>it.amount>0).slice(0,40);
+  const isum=items.reduce((a,b)=>a+b.amount,0);
+  let total=n(r.total);if(!total)total=isum+n(r.tax)+n(r.service)-n(r.discount);
+  if(!total&&!items.length)throw {code:"empty"};
+  return {merchant:String(r.merchant||"").slice(0,80),date:isDate(r.date)?r.date:"",total,items,isum,tax:n(r.tax),service:n(r.service),discount:n(r.discount),taxLabel:"Tax",category:cats().includes(r.category)?r.category:"",consistent:true};
+}
+async function callSample(prompt,img,signal){
+  const base={modelTier:"default",cache:false,signal};
+  if(!img)return S.sample.json(prompt,base);
+  const shapes=[[{data:img.b64,mediaType:"image/jpeg"}],[img.blob],[img.dataUrl]];
+  let last;
+  for(const images of shapes){
+    try{return await S.sample.json(prompt,Object.assign({},base,{images}));}
+    catch(e){last=e;const c=String(e?.code||"");if(!/invalid|unsupported|bad|type|image|schema|argument/i.test(c+" "+(e?.message||"")))throw e;}
+  }
+  throw last;
+}
+async function visionAvailable(){
+  if(!S.sample||typeof S.sample.limits!=="function")return false;
+  try{const l=await S.sample.limits();const v=l&&(l.images??l.maxImages??l.image);return !!v&&v!==0;}catch(e){return false;}
+}
+async function runScan(img,text){
+  const f=S.form;if(!f)return;
+  const ctrl=new AbortController();f.scan.ctrl=ctrl;f.scan.state="busy";f.scan.progress="";renderScan();
+  const setMsg=m=>{if(S.form===f&&f.scan.state==="busy"){f.scan.progress=m;const el=$("#xf-scan .small");if(el)el.textContent=m;}};
+  const cancelled=()=>ctrl.signal.aborted||S.form!==f;
+  let bill=null,source="";
+  try{
+    // 1) Claude reading the photo directly, when this viewer supports images
+    if(img&&await visionAvailable()){
+      setMsg("Asking Claude to read the photo…");
+      try{bill=normalizeBill(await callSample(billPrompt("Read the attached photo of a bill."),img,ctrl.signal));source="claude";}
+      catch(e){if(e?.code==="cancelled"||cancelled())throw {code:"cancelled"};if(e?.code==="notbill")throw e;}
+    }
+    // 2) on-device text recognition
+    let raw=text||"",parsed=null;
+    if(!bill&&img){
+      setMsg("Loading the text reader…");
+      let r;try{r=await ocrBill(img.canvas,setMsg);}catch(e){console.warn(e);if(cancelled())throw {code:"cancelled"};throw {code:"ocr"};}
+      if(cancelled())throw {code:"cancelled"};
+      raw=r.text;parsed=r.parsed;f.scan.raw=raw;
+    }
+    if(!bill){
+      parsed=parsed||parseBill(raw);
+      // 3) ask Claude to tidy up only when the numbers don't add up
+      if(!parsed.consistent&&S.sample&&raw.trim()){
+        setMsg("Double-checking the numbers with Claude…");
+        try{bill=normalizeBill(await callSample(billPrompt("Here is text read from a bill. It may contain recognition errors; fix them where the arithmetic makes it clear.\n\"\"\"\n"+raw.slice(0,6000)+"\n\"\"\""),null,ctrl.signal));source="claude";
+          if(!bill.merchant)bill.merchant=parsed.merchant;}
+        catch(e){if(e?.code==="cancelled"||cancelled())throw {code:"cancelled"};}
+      }
+      if(!bill){if(!parsed.total&&!parsed.items.length)throw {code:"empty"};bill=parsed;source="ocr";}
+    }
+    if(cancelled())return;
+    applyBill(bill);
+    f.scan.state="done";
+    const diff=bill.items.length?bill.total-bill.isum:0;
+    f.scan.msg=`${bill.items.length?bill.items.length+" item"+(bill.items.length>1?"s":"")+" found":"Total found"}${diff>0?" · "+rp(diff)+" tax & service":diff<0?" · "+rp(-diff)+" discount":""}. `+
+      (bill.consistent?"Check the details, then tag who had what.":"Some numbers may be misread. Compare the total and items with the photo.");
+    renderScan();
+  }catch(e){
+    if(S.form!==f)return;
+    const c=e?.code||"";
+    if(c==="cancelled"){f.scan.state=f.scan.preview?"done":"idle";f.scan.msg="Scan cancelled. Fill in the details by hand.";renderScan();return;}
+    f.scan.state="error";
+    f.scan.msg=c==="notbill"?"That doesn't look like a bill. Try a clearer, straight-on photo.":
+      c==="ocr"?"The text reader couldn't start in this browser. Use “Paste text”, or fill in the details by hand.":
+      c==="empty"||c==="parse"?"No amounts could be read. Try a sharper, well-lit photo with the total visible.":
+      "Something went wrong reading the bill. Try again or fill it in by hand.";
+    renderScan();
+  }
+}
+function applyBill(b){
+  const f=S.form;readFormFields();
+  if(b.merchant)f.desc=b.merchant;
+  if(b.date){f.date=b.date;if(!f.evManual)f.eventId=autoEvent(b.date);}
+  if(b.total)f.amount=b.total;
+  if(b.category)f.cat=b.category;
+  if(b.items.length){f.split="items";f.items=b.items.map(it=>mkItem(it.name,it.amount,[],it.qty&&it.amount%it.qty===0?it.qty:1));
+    f.charges=[];if(b.service)f.charges.push(mkCharge("Service charge",b.service));if(b.tax)f.charges.push(mkCharge(b.taxLabel||"Tax",b.tax));if(b.discount)f.charges.push(mkCharge("Discount",b.discount,true));
+    f.amountLinked=f.amount===b.isum+(b.service||0)+(b.tax||0)-(b.discount||0);}
+  $("#xf-desc").value=f.desc;$("#xf-date").value=f.date;$("#xf-amount").value=f.amount?nf.format(f.amount):"";
+  fillFormSelects();renderSeg();renderSplit();
+}
+async function handleFile(file){
+  const f=S.form;if(!f||!file)return;
+  if(!/^image\//.test(file.type)&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name||"")){f.scan.state="error";f.scan.msg="That file isn't an image. Upload a JPG or PNG photo of the bill.";renderScan();return;}
+  let img;
+  try{img=await prepImage(file);}catch(e){f.scan.state="error";f.scan.msg="Couldn't open that image. Try a JPG or PNG, or a screenshot of the bill.";renderScan();return;}
+  if(f.scan.preview)try{URL.revokeObjectURL(f.scan.preview);}catch(e){}
+  f.scan.preview=img.preview;f.scan.blob=img.blob;
+  runScan(img,null);
+}
+
+/* ---------- actions ---------- */
+async function toggleShare(eid,mid){
+  const x=S.expenses.find(e=>e.id===eid);if(!x||!x.shares?.[mid])return;
+  const shares=JSON.parse(JSON.stringify(x.shares));const s=shares[mid];s.paid=!s.paid;s.paidAt=s.paid?today():"";
+  await patch("expenses",eid,{shares,updatedAt:Date.now()});
+  toast(s.paid?`${mname(mid)}'s ${rp(s.amount)} marked as transferred`:`${mname(mid)}'s ${rp(s.amount)} marked as owed again`);
+}
+async function settlePair(a,b){
+  const list=fullList().filter(x=>x.paidBy===a||x.paidBy===b);const before=[];const t=today();
+  const [sa,sb]=[a,b].sort();const p=pairs(fullList()).find(p=>p.a===sa&&p.b===sb);
+  for(const x of list){const other=x.paidBy===a?b:a;const s=x.shares?.[other];if(!s||s.paid||!(+s.amount))continue;
+    before.push({id:x.id,shares:JSON.parse(JSON.stringify(x.shares))});
+    const shares=JSON.parse(JSON.stringify(x.shares));shares[other].paid=true;shares[other].paidAt=t;
+    await patch("expenses",x.id,{shares,updatedAt:Date.now()});}
+  if(!before.length)return;
+  toast(p&&p.amount?`Marked ${rp(p.amount)} from ${mname(p.from)} to ${mname(p.to)} as transferred`:`Cleared shares between ${mname(a)} and ${mname(b)}`,
+    async()=>{for(const u of before)await patch("expenses",u.id,{shares:u.shares,updatedAt:Date.now()});toast("Transfer undone");});
+}
+async function copySummary(){
+  const P=pairs(fullList()).filter(p=>p.amount);
+  const txt=`${S.config.groupName||"Group expenses"} · ${ctxLabel()}\nWho pays whom:\n`+P.map(p=>`• ${mname(p.from)} → ${mname(p.to)}: ${rp(p.amount)}`).join("\n")+`\nTotal: ${rp(P.reduce((a,p)=>a+p.amount,0))}`;
+  try{await navigator.clipboard.writeText(txt);toast("Summary copied. Paste it into your group chat.");}
+  catch(e){const slot=$("#copy-slot");if(slot){slot.innerHTML=`<p class="small muted" style="margin:12px 0 0">Copying is blocked here. Select the text below and copy it.</p><textarea class="ctl copybox" id="copy-text" readonly>${esc(txt)}</textarea>`;const ta=$("#copy-text");ta.focus();ta.select();}}
+}
+function goEvent(id,tab){S.f.event=id;S.f.preset="all";S.tab=tab;persist();renderAll();window.scrollTo({top:0});}
+
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-act]");if(!t)return;
+  const a=t.dataset.act,id=t.dataset.id;
+  if(a==="overlay"&&e.target!==t)return;
+  const f=S.form;
+  switch(a){
+    case "tab":S.tab=id;persist();renderAll();window.scrollTo({top:0});break;
+    case "add":if(!S.readOnly)openForm(null);break;
+    case "scan-new":if(!S.readOnly)openForm(null,{scan:true});break;
+    case "edit":openForm(S.expenses.find(x=>x.id===id));break;
+    case "close":case "overlay":closeModal();break;
+    case "toggle":if(e.target.closest("button,img"))return;S.open.has(id)?S.open.delete(id):S.open.add(id);S.confirmDel=null;renderAll();break;
+    case "status":S.status=id;renderAll();break;
+    case "groupby":S.groupBy=id;persist();renderAll();break;
+    case "trend":S.trend=id;persist();renderAll();break;
+    case "sync-now":setSync("saving");G.dirty?push():pull();break;
+    case "backup":downloadBackup();break;
+    case "lock-device":lockDevice(false);break;
+    case "mode":S.mode=id;ls.set("get-mode",id);renderAll();break;
+    case "accent":if(!S.readOnly){await saveConfig({colorTheme:id});toast((ACCENTS.find(x=>x[0]===id)||[])[1]+" theme applied for the group");}break;
+    case "mem-color":S.colorOpen=S.colorOpen===id?null:id;renderAll();break;
+    case "mem-color-set":{const k=t.dataset.c;const m=mem(id);if(m&&mKey(m)!==k){await patch("members",id,{colorKey:k});}break;}
+    case "acc":S.acc.has(id)?S.acc.delete(id):S.acc.add(id);persist();renderAll();break;
+    case "share":e.stopPropagation();toggleShare(id,t.dataset.m);break;
+    case "del":S.confirmDel=id;renderAll();break;
+    case "del-no":S.confirmDel=null;renderAll();break;
+    case "del-yes":{const x=S.expenses.find(e=>e.id===id);S.confirmDel=null;S.open.delete(id);const ok=await remove("expenses",id);
+      if(ok&&x)toast("Expense deleted",async()=>{const{id:_,...d}=x;await put("expenses",id,d);toast("Expense restored");});break;}
+    case "settle":settlePair(t.dataset.a,t.dataset.b);break;
+    case "copy":copySummary();break;
+    case "undo":{const u=S.undo;S.undo=null;$("#toast-root").innerHTML="";if(u)u();break;}
+    case "reset-filters":S.f={preset:"all",from:"",to:"",cat:"",person:"",event:""};persist();renderAll();break;
+    case "lightbox":e.stopPropagation();lightbox(t.dataset.src);break;
+    case "lightbox-close":lightbox(null);break;
+    case "split":if(f){readFormFields();f.split=id;
+      if(id==="items"){if(!f.items.length)f.items=[mkItem("",0)];const {isum}=itemSubtotals();f.amountLinked=!f.amount||f.amount===isum+chargeSum();}
+      renderSeg();renderSplit();}break;
+    case "fill-rest":{const sum=Object.values(computeShares()).reduce((a,b)=>a+b,0);f.custom[f.paidBy]=(+f.custom[f.paidBy]||0)+(f.amount-sum);renderSplit();break;}
+    case "item-qty":{const it=f.items.find(i=>i.k===id);if(it){setItem(it,{qty:it.qty+(+t.dataset.d)});const q=$("#xi-q-"+it.k);if(q)q.value=it.qty;updateAlloc();}break;}
+    case "item-add":f.items.push(mkItem());renderSplit();setTimeout(()=>$(`#xi-n-${f.items[f.items.length-1].k}`)?.focus(),20);break;
+    case "item-del":f.items=f.items.filter(it=>it.k!==id);renderSplit();break;
+    case "item-who":{const it=f.items.find(i=>i.k===id);if(it){it.who.has(t.dataset.m)?it.who.delete(t.dataset.m):it.who.add(t.dataset.m);renderSplit();}break;}
+    case "link-total":f.amountLinked=true;updateAlloc();break;
+    case "charge-del":f.charges=f.charges.filter(c=>c.k!==id);renderSplit();break;
+    case "charge-add":{const {isum}=itemSubtotals();const base=isum+f.charges.filter(c=>!c.less).reduce((a,c)=>a+(+c.amount||0),0);
+      const c=id==="sc"?mkCharge("Service charge",Math.round(isum*.05)):id==="pb1"?mkCharge("Tax (PB1)",Math.round(base*.1)):id==="ppn"?mkCharge("Tax (PPN)",Math.round(base*.11)):id==="disc"?mkCharge("Discount",0,true):mkCharge("Other charge",0);
+      if(id==="sc")f.charges.unshift(c);else f.charges.push(c);renderSplit();if(!c.amount)setTimeout(()=>$("#xc-a-"+c.k)?.focus(),20);break;}
+    case "scan-pick":$("#xf-file")?.click();break;
+    case "scan-paste":f.scan.state="paste";renderScan();setTimeout(()=>$("#xf-paste")?.focus(),20);break;
+    case "scan-idle":f.scan.state="idle";renderScan();break;
+    case "scan-text":{const txt=$("#xf-paste")?.value.trim();if(!txt){toast("Paste the bill text first.");break;}runScan(null,txt);break;}
+    case "scan-cancel":try{f.scan.ctrl?.abort();}catch(e){}f.scan.state=f.scan.preview?"done":"idle";f.scan.msg="Scan cancelled. Fill in the details by hand.";renderScan();break;
+    case "scan-clear":if(f.scan.preview)try{URL.revokeObjectURL(f.scan.preview);}catch(e){}f.scan={state:"idle"};f.receipt=null;renderScan();break;
+    case "mem-del":{const m=mem(id);if(m){await remove("members",id);toast(m.name+" removed");}break;}
+    case "cat-del":await saveConfig({categories:cats().filter(c=>c!==id)});break;
+    case "ev-new":openEventForm(null);break;
+    case "ev-edit":openEventForm(evt(id));break;
+    case "ev-del":{const ev=evt(id);closeModal();if(ev&&await remove("events",id))toast(ev.name+" deleted");break;}
+    case "ev-view":goEvent(id,"expenses");break;
+    case "ev-settle":goEvent(id,"settle");break;
+  }
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){if($("#lightbox-root").innerHTML)lightbox(null);else if(S.form||S.evform)closeModal();}
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches(".xrow")){e.preventDefault();e.target.click();}
+});
+document.addEventListener("input",e=>{
+  const t=e.target;const f=S.form;if(!f)return;
+  if(t.id==="xf-amount"){const n=digits(t.value);f.amount=n;t.value=n?nf.format(n):"";if(f.split==="items")f.amountLinked=!n;updateAlloc();}
+  else if(t.dataset.camt){const c=f.charges.find(i=>i.k===t.dataset.camt);const n=digits(t.value);if(c)c.amount=n;t.value=n?nf.format(n):"";updateAlloc();}
+  else if(t.dataset.clabel){const c=f.charges.find(i=>i.k===t.dataset.clabel);if(c)c.label=t.value;}
+  else if(t.dataset.cus){const n=digits(t.value);f.custom[t.dataset.cus]=n;t.value=n?nf.format(n):"";updateAlloc();}
+  else if(t.dataset.iamt){const it=f.items.find(i=>i.k===t.dataset.iamt);const n=digits(t.value);if(it)setItem(it,{price:n});t.value=n?nf.format(n):"";updateAlloc();}
+  else if(t.dataset.iqty){const it=f.items.find(i=>i.k===t.dataset.iqty);const n=digits(t.value);if(it&&n)setItem(it,{qty:n});updateAlloc();}
+  else if(t.dataset.iname){const it=f.items.find(i=>i.k===t.dataset.iname);if(it)it.name=t.value;}
+});
+document.addEventListener("change",async e=>{
+  const t=e.target;const f=S.form;
+  if(t.id==="restore-file"){const file=t.files&&t.files[0];t.value="";if(file)restoreBackup(file);}
+  else if(t.id==="flt-preset"){S.f.preset=t.value;if(t.value==="custom"&&!S.f.from){const r=new Date();S.f.to=ymd(r);r.setDate(1);S.f.from=ymd(r);}persist();renderAll();}
+  else if(t.id==="flt-from"){S.f.from=t.value;persist();renderAll();}
+  else if(t.id==="flt-to"){S.f.to=t.value;persist();renderAll();}
+  else if(t.id==="flt-event"){S.f.event=t.value;if(t.value&&t.value!=="_none"&&S.f.preset!=="custom")S.f.preset="all";persist();renderAll();}
+  else if(t.id==="flt-cat"){S.f.cat=t.value;persist();renderAll();}
+  else if(t.id==="flt-person"){S.f.person=t.value;persist();renderAll();}
+  else if(t.dataset.iqty&&f){const it=f.items.find(i=>i.k===t.dataset.iqty);if(it)t.value=it.qty;}
+  else if(t.id==="xf-file"&&f){const file=t.files&&t.files[0];t.value="";if(file)handleFile(file);}
+  else if(t.dataset.inc&&f){t.checked?f.inc.add(t.dataset.inc):f.inc.delete(t.dataset.inc);updateAlloc();}
+  else if(t.id==="xf-payer"&&f){f.paidBy=t.value;renderSplit();}
+  else if(t.id==="xf-event"&&f){f.eventId=t.value;f.evManual=true;}
+  else if(t.id==="xf-date"&&f){f.date=t.value;if(!f.evManual){f.eventId=autoEvent(t.value);$("#xf-event").value=f.eventId;}}
+  else if(t.dataset.mem){const v=t.value.trim();const m=mem(t.dataset.mem);if(m&&v&&v!==m.name){await patch("members",m.id,{name:v});toast("Renamed to "+v);}else if(m)t.value=m.name;}
+  else if(t.id==="cfg-name"){await saveConfig({groupName:t.value.trim()});toast("Group name saved");}
+});
+document.addEventListener("submit",async e=>{
+  e.preventDefault();const t=e.target;
+  if(t.id==="lock-form"){tryUnlock();return;}
+  if(t.id==="xform")submitForm();
+  else if(t.id==="evform")submitEvent();
+  else if(t.id==="mem-form"){const inp=$("#mem-new");const name=inp.value.trim();if(!name)return;
+    if(S.members.length>=MAX_MEMBERS){toast(`The group can have up to ${MAX_MEMBERS} members.`);return;}
+    if(S.members.some(m=>m.name.toLowerCase()===name.toLowerCase())){toast(name+" is already in the group.");return;}
+    const usedK=new Set(S.members.map(mKey));const colorKey=STARTER_MC.find(k=>!usedK.has(k))||MCOLORS.map(c=>c[0]).find(k=>!usedK.has(k))||"teal";
+    const color=S.members.reduce((a,m)=>Math.max(a,(m.color??0)+1),0);
+    await put("members",uid(),{name,color,colorKey,createdAt:Date.now()});setTimeout(()=>$("#mem-new")?.focus(),20);}
+  else if(t.id==="cat-form"){const v=$("#cat-new").value.trim();if(!v)return;if(cats().some(c=>c.toLowerCase()===v.toLowerCase())){toast(v+" already exists.");return;}
+    await saveConfig({categories:[...cats(),v]});setTimeout(()=>$("#cat-new")?.focus(),20);}
+});
+/* drag & drop a bill onto the scan box */
+document.addEventListener("dragover",e=>{const z=e.target.closest&&e.target.closest("#xf-scan");if(z){e.preventDefault();z.classList.add("drag");}});
+document.addEventListener("dragleave",e=>{const z=e.target.closest&&e.target.closest("#xf-scan");if(z)z.classList.remove("drag");});
+document.addEventListener("drop",e=>{const z=e.target.closest&&e.target.closest("#xf-scan");if(!z)return;e.preventDefault();z.classList.remove("drag");const file=e.dataTransfer?.files?.[0];if(file)handleFile(file);});
+/* paste an image while the form is open */
+document.addEventListener("paste",e=>{if(!S.form||S.readOnly||S.form.scan.state==="busy")return;const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/"));if(it){e.preventDefault();handleFile(it.getAsFile());}});
+
+/* ---------- boot ---------- */
+rebuild();renderAll();
+if(!G.token)showLock();else{setSync("idle");startSync();}
+})();
+</script>
+
+</body>
+</html>

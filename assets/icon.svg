@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5C5CFF"/><stop offset="1" stop-color="#3939FF"/></linearGradient>
+    <radialGradient id="f" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#F3F5FA"/><stop offset="1" stop-color="#DDE2EC"/></radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#g)"/>
+  <circle cx="256" cy="262" r="172" fill="#1E1E9E" opacity=".25"/>
+  <circle cx="256" cy="252" r="172" fill="url(#f)" stroke="#C9D0DD" stroke-width="6"/>
+  <circle cx="256" cy="252" r="140" fill="none" stroke="#3939FF" stroke-opacity=".28" stroke-width="9" stroke-dasharray="12 16"/>
+  <text x="256" y="256" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Helvetica, Arial, sans-serif" font-weight="800" font-size="118" fill="#3939FF">Rp</text>
+</svg>

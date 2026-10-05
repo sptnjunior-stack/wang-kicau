@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wang-Kicau setup</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<script src="assets/config.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#F4F4F7;--card:#FFFFFF;--fg:#0B0B0F;--muted:#666675;--line:#E2E2EA;--accent:#3939FF;--accent-soft:#EDEDFF;--ok:#3F7A00;--ok-soft:#F1FFD1;--bad:#D63A00;--bad-soft:#FFE9E0;--warn:#8A6800;--warn-soft:#FFF7D6}
+@media (prefers-color-scheme: dark){:root{--bg:#0B0B0F;--card:#141419;--fg:#F2F2F5;--muted:#9B9BAA;--line:#2A2A33;--accent:#7A7AFF;--accent-soft:#1C1C45;--ok:#C2FF01;--ok-soft:#232E05;--bad:#FF7A45;--bad-soft:#3A1A0E;--warn:#F2BB05;--warn-soft:#332A08;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.55}
+.wrap{max-width:720px;margin:0 auto;padding:32px 16px 64px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;gap:14px;align-items:center}
+header img{width:52px;height:52px;border-radius:14px}
+h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em}
+h2{margin:0 0 4px;font-size:17px}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;margin-right:8px;vertical-align:1px}
+label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:4px}
+input,textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+button{font:inherit;font-weight:700;border:0;border-radius:999px;padding:10px 18px;cursor:pointer;background:var(--accent);color:#fff}
+button.sec{background:var(--accent-soft);color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.msg{font-size:14px;padding:10px 12px;border-radius:12px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+textarea{font-family:ui-monospace,"SFMono-Regular",Menlo,monospace;font-size:12.5px;min-height:230px}
+code{font-family:ui-monospace,"SFMono-Regular",Menlo,monospace;font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="assets/icon-192.png" alt=""><div><h1>Wang-Kicau setup</h1><p class="muted small">For the group owner only. Everything here runs in your browser; your token is never sent anywhere except GitHub.</p></div></header>
+
+  <div class="card">
+    <h2><span class="step">1</span>Data repo and access key</h2>
+    <p class="small muted">Use the private data repo and the fine-grained token you made in the README (Contents: Read and write, only this repo).</p>
+    <div class="row">
+      <div><label for="owner">Repo owner</label><input id="owner" placeholder="sptnjunior-stack"></div>
+      <div><label for="repo">Private data repo</label><input id="repo" value="wang-kicau-data"></div>
+    </div>
+    <div class="row">
+      <div><label for="branch">Branch</label><input id="branch" value="main"></div>
+      <div><label for="token">Fine-grained token</label><input id="token" type="password" placeholder="github_pat_…" autocomplete="off"></div>
+    </div>
+    <div class="actions"><button class="sec" id="check">Check access</button></div>
+    <div id="check-msg" class="msg" hidden></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span>Group passphrase</h2>
+    <p class="small muted">Friends type this once on each device to unlock the ledger. Use at least four random words, e.g. <code>kopi senja ojek pelangi</code>. Anyone who knows it can read and edit the ledger, so share it privately (not in a public post).</p>
+    <div class="row">
+      <div><label for="pass">Passphrase</label><input id="pass" type="text" autocomplete="off" spellcheck="false"></div>
+      <div><label for="pass2">Type it again</label><input id="pass2" type="text" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div id="pass-msg" class="msg" hidden></div>
+    <div class="actions"><button id="make">Create config.js</button></div>
+  </div>
+
+  <div class="card" id="out-card" hidden>
+    <h2><span class="step">3</span>Paste into <code>assets/config.js</code></h2>
+    <p class="small muted">On GitHub, open <code>assets/config.js</code> in the public app repo, click the pencil, replace everything with the text below, and commit. Then open the site and unlock with the passphrase.</p>
+    <textarea id="out" readonly></textarea>
+    <div class="actions"><button id="copy">Copy</button></div>
+    <div id="copy-msg" class="msg ok" hidden>Copied.</div>
+  </div>
+
+  <p class="small muted">Changing the passphrase or renewing the token later: run this page again and replace <code>config.js</code>. Everyone then unlocks once more with the new passphrase.</p>
+</div>
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const ITER=310000;
+const val=id=>$("#"+id).value.trim();
+const show=(id,cls,text)=>{const el=$("#"+id);el.hidden=!text;el.className="msg "+cls;el.textContent=text||"";};
+const b64=bytes=>{let s="";bytes.forEach(b=>s+=String.fromCharCode(b));return btoa(s);};
+async function gh(path,token){
+  return fetch("https://api.github.com/repos/"+encodeURIComponent(val("owner"))+"/"+encodeURIComponent(val("repo"))+(path||""),
+    {headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28"},cache:"no-store"});
+}
+async function check(){
+  const token=val("token");
+  if(!val("owner")||!val("repo")||!token){show("check-msg","bad","Fill in the owner, repo and token first.");return false;}
+  $("#check").disabled=true;show("check-msg","warn","Checking…");
+  try{
+    const r=await gh("",token);
+    if(r.status===401){show("check-msg","bad","GitHub rejected the token. It may be mistyped or expired.");return false;}
+    if(r.status===404){show("check-msg","bad","Repo not found. Check the owner and repo names, and that the token's resource owner and repository access include this repo.");return false;}
+    if(!r.ok){show("check-msg","bad","GitHub returned an error ("+r.status+").");return false;}
+    const j=await r.json();
+    if(!j.private){show("check-msg","bad","This repo is PUBLIC. Make it private first (repo Settings → General → Danger Zone → Change visibility), otherwise anyone can read your expenses.");return false;}
+    if(j.permissions&&j.permissions.push===false){show("check-msg","bad","The token can read but not write. Give it Repository permissions → Contents: Read and write.");return false;}
+    show("check-msg","ok","Access OK: private repo "+j.full_name+", and the token can write to it.");return true;
+  }catch(e){show("check-msg","bad","Couldn't reach GitHub. Check your connection.");return false;}
+  finally{$("#check").disabled=false;}
+}
+async function make(){
+  const pass=$("#pass").value.trim().normalize("NFC"),pass2=$("#pass2").value.trim().normalize("NFC");
+  if(!pass){show("pass-msg","bad","Choose a passphrase.");return;}
+  if(pass!==pass2){show("pass-msg","bad","The two passphrases don't match.");return;}
+  const words=pass.split(/\s+/).length;
+  if(pass.length<14||words<3){show("pass-msg","warn","That passphrase is short. Anyone who gets hold of the site files could try to guess it, so use at least four random words.");}
+  else show("pass-msg","ok","");
+  if(!await check())return;
+  $("#make").disabled=true;
+  try{
+    const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+    const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);
+    const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:ITER,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt"]);
+    const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(val("token"))));
+    const cfg={owner:val("owner"),repo:val("repo"),branch:val("branch")||"main",path:"data.json",photos:"photos",
+      lock:{v:1,kdf:"PBKDF2-SHA256",iter:ITER,salt:b64(salt),iv:b64(iv),data:b64(ct)}};
+    $("#out").value="/* Wang-Kicau settings — generated by setup.html on "+new Date().toISOString().slice(0,10)+".\n   Public file: the access key below is encrypted with the group passphrase. */\nwindow.WK_CONFIG = "+JSON.stringify(cfg,null,2)+";\n";
+    $("#out-card").hidden=false;$("#out-card").scrollIntoView({behavior:"smooth"});
+  }catch(e){show("pass-msg","bad","Your browser couldn't encrypt the key. Try a recent Chrome, Safari or Firefox.");}
+  finally{$("#make").disabled=false;}
+}
+$("#check").addEventListener("click",check);
+$("#make").addEventListener("click",make);
+$("#copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("#out").value);}catch(e){$("#out").select();document.execCommand("copy");}$("#copy-msg").hidden=false;});
+try{if(window.WK_CONFIG&&WK_CONFIG.owner){$("#owner").value=WK_CONFIG.owner;$("#repo").value=WK_CONFIG.repo||"wang-kicau-data";$("#branch").value=WK_CONFIG.branch||"main";}}catch(e){}
+})();
+</script>
+</body>
+</html>
