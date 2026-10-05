@@ -408,15 +408,15 @@ table.brk th,table.brk td{padding:7px 8px}
   --field-a:30%; --field-b:22%;
 }}
 /* colour field behind the glass */
-body::before{content:""; position:fixed; inset:-12%; z-index:-1; pointer-events:none;
+body::before{content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
   background:
     radial-gradient(38% 46% at 10% 14%, color-mix(in srgb,var(--accent) var(--field-a),transparent), transparent 70%),
     radial-gradient(34% 42% at 92% 10%, color-mix(in srgb,var(--p1) var(--field-b),transparent), transparent 70%),
     radial-gradient(42% 50% at 84% 82%, color-mix(in srgb,var(--p3) var(--field-a),transparent), transparent 70%),
     radial-gradient(40% 48% at 18% 92%, color-mix(in srgb,var(--p4) var(--field-a),transparent), transparent 70%),
     radial-gradient(30% 36% at 52% 48%, color-mix(in srgb,var(--p5) var(--field-b),transparent), transparent 70%);
-  filter:blur(24px); animation:drift 38s ease-in-out infinite alternate}
-@keyframes drift{to{transform:translate3d(2.5%,-2%,0) scale(1.06) rotate(2deg)}}
+  background-size:100% 100%; animation:drift 38s ease-in-out infinite alternate}
+@keyframes drift{0%{background-position:0 0} 100%{background-position:0 0}}
 
 /* glass panels */
 .card,.kpi,.evcard,.side,.filters,.modal,.toast,.scan{-webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur)}
@@ -562,6 +562,22 @@ img{max-width:100%}
   .lightbox{padding:10px}
   body::before{animation:none}
 }
+
+/* phones: nothing may widen the page (iOS Safari counts fixed layers), compact header */
+html,body{overflow-x:clip; max-width:100%}
+@media (max-width:720px){
+  .pagehead{flex-wrap:nowrap; align-items:center}
+  .pagehead > div:first-child{min-width:0; flex:1}
+  .pagehead h1{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .topbtns{flex:none}
+  #btn-scan{width:46px; height:46px; min-height:46px; padding:0; border-radius:50%; justify-content:center}
+  #btn-scan svg{width:20px; height:20px}
+  .topbtns .lbl{display:none}
+  .kpi-head{flex-wrap:wrap}
+  .kpi .v{overflow-wrap:anywhere}
+  .main,.filters,.card,.kpi,.kpis{max-width:100%}
+  .tabbar{max-width:calc(100vw - 20px)}
+}
 </style>
 <script src="assets/config.js"></script>
 </head>
@@ -596,7 +612,7 @@ img{max-width:100%}
   <header class="pagehead">
     <div><button class="backbtn" id="btn-back" data-act="tab" data-id="more" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>More</button><h1 id="ptitle">Dashboard</h1><p id="psub" class="small muted"></p></div>
     <div class="topbtns">
-      <button class="btn" data-act="scan-new" id="btn-scan" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 011-1h2M11 2h2a1 1 0 011 1v2M14 11v2a1 1 0 01-1 1h-2M5 14H3a1 1 0 01-1-1v-2M5 6h6M5 8h6M5 10h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Scan bill</button>
+      <button class="btn" data-act="scan-new" id="btn-scan" hidden><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 011-1h2M11 2h2a1 1 0 011 1v2M14 11v2a1 1 0 01-1 1h-2M5 14H3a1 1 0 01-1-1v-2M5 6h6M5 8h6M5 10h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="lbl">Scan bill</span></button>
       <button class="btn primary" data-act="add" id="btn-add">+ Add expense</button>
     </div>
   </header>
