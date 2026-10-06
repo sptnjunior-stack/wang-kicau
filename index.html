@@ -578,6 +578,38 @@ html,body{overflow-x:clip; max-width:100%}
   .main,.filters,.card,.kpi,.kpis{max-width:100%}
   .tabbar{max-width:calc(100vw - 20px)}
 }
+
+/* sheets sit above the tab bar; scan box stacks on phones */
+.overlay{z-index:45}
+.lightbox{z-index:60}
+@media (max-width:720px){
+  .scan{flex-wrap:wrap; gap:12px; padding:14px; align-items:flex-start}
+  .scan .ico{width:40px; height:40px}
+  .scan .txt{flex:1 1 0; min-width:0}
+  .scan .txt b{font-size:16px; margin-bottom:2px}
+  .scan .acts{flex:1 1 100%; display:flex; gap:8px}
+  .scan .acts .btn{flex:1; min-height:44px; font-size:15px}
+  .scan img{width:48px; height:48px}
+  .modal header h2{font-size:20px}
+}
+
+@media (max-width:720px){ .modal .row2{grid-template-columns:1fr 1fr; gap:10px} .seg[aria-label="Split method"]{overflow:visible} }
+@media (max-width:359px){ .modal .row2{grid-template-columns:1fr} }
+
+/* history */
+.hrow{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:11px 4px; border-bottom:1px solid var(--line)}
+.hrow.link{cursor:pointer}
+.hrow.link:hover{background:var(--surface-2)}
+.hmain{min-width:0}
+.htxt{font-size:14px; line-height:1.4; overflow-wrap:anywhere}
+.hdot{width:8px; height:8px; border-radius:50%; background:var(--muted)}
+.hdot.add{background:var(--accent)} .hdot.edit{background:var(--gold)} .hdot.del{background:var(--owed)} .hdot.paid{background:var(--paid)} .hdot.owed{background:var(--owed)}
+.xby{margin:0 0 10px}
+.mepick{display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px}
+.mechip{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:16px; border:1px solid var(--glass-border,var(--line)); background:var(--surface); color:var(--fg); font:inherit; font-weight:600; cursor:pointer; text-align:left}
+.mechip:hover{border-color:var(--line-strong)}
+.mechip[aria-pressed="true"]{border-color:var(--accent-ink); background:var(--accent-soft)}
+@media (max-width:720px){ .hrow{grid-template-columns:auto minmax(0,1fr) auto} .hrow .hdot{display:none} #hist-who{max-width:none!important; width:100%} }
 </style>
 <script src="assets/config.js"></script>
 </head>
@@ -599,6 +631,7 @@ html,body{overflow-x:clip; max-width:100%}
     <button class="nav-i" data-act="tab" data-id="expenses"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Expenses</span></button>
     <button class="nav-i" data-act="tab" data-id="settle"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Split &amp; settle</span></button>
     <button class="nav-i" data-act="tab" data-id="events"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Events</span></button>
+    <button class="nav-i" data-act="tab" data-id="history"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 103-6.7M3 4v4h4M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>History</span></button>
     <div class="nav-group">
       <div class="nav-h"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Configuration</span></div>
       <button class="nav-i sub" data-act="tab" data-id="members"><span>Members</span></button>
@@ -789,8 +822,8 @@ const amountFor=(x,p)=>p?(+x.shares?.[p]?.amount||0):(+x.amount||0);
 const CFG=Object.assign({owner:"",repo:"",branch:"main",path:"data.json",photos:"photos",lock:null},window.WK_CONFIG||{});
 const REPO_ID=CFG.owner+"/"+CFG.repo;
 const TOKEN_KEY="wk-token:"+REPO_ID, CACHE_KEY="wk-cache:"+REPO_ID;
-const COLS=["members","expenses","events"];
-const emptyData=()=>({version:1,app:"Wang-Kicau",members:{},expenses:{},events:{},config:{},deleted:{}});
+const COLS=["members","expenses","events","activity"];
+const emptyData=()=>{const o={version:1,app:"Wang-Kicau",config:{},deleted:{}};COLS.forEach(c=>o[c]={});return o;};
 function normalizeData(d){d=d&&typeof d==="object"?d:{};const o=emptyData();COLS.forEach(c=>o[c]=d[c]&&typeof d[c]==="object"?d[c]:{});o.config=d.config||{};o.deleted=d.deleted||{};return o;}
 /* newest edit to each record wins; deletions are remembered as tombstones */
 function mergeData(a,b){
@@ -811,6 +844,7 @@ function rebuild(){
   S.members=arr("members").filter(m=>m.name).sort((a,b)=>(a.color??0)-(b.color??0)||(a.createdAt||0)-(b.createdAt||0));
   S.expenses=arr("expenses").filter(x=>x.date&&x.paidBy);
   S.events=arr("events").filter(x=>x.name);
+  S.activity=arr("activity").filter(a=>a.action&&a.t);
   const c=Object.assign({},G.data.config);delete c._u;
   S.config=Object.assign({groupName:"",categories:DEFAULT_CATS.slice()},c);
   S.loaded={m:true,e:true,v:true};
@@ -977,6 +1011,67 @@ async function restoreBackup(file){
   catch(e){toast("That file isn't a Wang-Kicau backup.");}
 }
 
+/* ---------- who is using this device + activity log ---------- */
+const ME_KEY=typeof REPO_ID!=="undefined"?"wk-me:"+REPO_ID:"wk-me";
+S.activity=S.activity||[];S.me=ls.get(ME_KEY)||"";S.histKind="all";S.histWho="";S.histLimit=80;
+function logAct(action,data){const id=uid();put("activity",id,Object.assign({t:Date.now(),by:S.me||"",action},data||{}));}
+function openMePicker(){
+  if(!S.members.length)return;
+  $("#modal-root").innerHTML=`<div class="overlay" data-act="overlay"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="me-title" style="max-width:460px">
+    <header><h2 id="me-title">Who's using this device?</h2><button type="button" class="btn ghost sm" data-act="close">Later</button></header>
+    <div class="body"><p class="small muted" style="margin:0">Your name goes in the history when you add or edit an expense or mark a transfer. You can change it any time from History or More.</p>
+    <div class="mepick">${S.members.map(m=>`<button type="button" class="mechip" data-act="me-set" data-id="${esc(m.id)}" aria-pressed="${S.me===m.id}">${av(m.id)}<span>${esc(m.name)}</span></button>`).join("")}</div></div></div></div>`;
+}
+function ensureMe(){
+  if(S.meAsked||!S.members.length||mem(S.me))return;
+  if($("#modal-root").innerHTML)return;const lk=$("#lock");if(lk&&!lk.hidden)return;
+  S.meAsked=true;setTimeout(()=>{if(!$("#modal-root").innerHTML)openMePicker();},400);
+}
+const whoName=id=>id?mname(id):"Someone";
+const actorAv=(id,cls="")=>id&&mem(id)?av(id,cls):`<span class="av ${cls}" style="background:var(--surface-2);color:var(--muted)">?</span>`;
+const hm=t=>{const d=new Date(t);return pad(d.getHours())+":"+pad(d.getMinutes());};
+const stamp=t=>t?fmtShort(ymd(new Date(t)))+", "+hm(t):"";
+const HIST_EXP=["add","edit","delete","restore"],HIST_PAY=["paid","unpaid","settle","unsettle"];
+function histLine(a){
+  const W=`<b>${esc(whoName(a.by))}</b>`,D=`<b>${esc(a.desc||"an expense")}</b>`,A=`<span class="num">${esc(rp(a.amount))}</span>`;
+  switch(a.action){
+    case "add":return {txt:`${W} added ${D} · ${A}`,sub:a.payer?`${esc(mname(a.payer))} paid`:"",icon:"add"};
+    case "edit":return {txt:`${W} edited ${D}`,sub:(a.changes||[]).map(c=>`${esc(c[0])}: ${esc(c[1])} → ${esc(c[2])}`).join(" · ")||"Details updated",icon:"edit"};
+    case "delete":return {txt:`${W} deleted ${D} · ${A}`,sub:"",icon:"del"};
+    case "restore":return {txt:`${W} restored ${D} · ${A}`,sub:"",icon:"add"};
+    case "paid":return {txt:`${W} marked <b>${esc(mname(a.from))}</b> → <b>${esc(mname(a.to))}</b> ${A} as transferred`,sub:esc(a.desc||""),icon:"paid"};
+    case "unpaid":return {txt:`${W} marked <b>${esc(mname(a.from))}</b> → <b>${esc(mname(a.to))}</b> ${A} as still owed`,sub:esc(a.desc||""),icon:"owed"};
+    case "settle":return {txt:`${W} marked <b>${esc(mname(a.from))}</b> → <b>${esc(mname(a.to))}</b> ${A} as transferred`,sub:`Settled ${a.n||1} expense${(a.n||1)>1?"s":""} at once`,icon:"paid"};
+    case "unsettle":return {txt:`${W} undid the transfer <b>${esc(mname(a.from))}</b> → <b>${esc(mname(a.to))}</b> ${A}`,sub:"",icon:"owed"};
+  }
+  return {txt:`${W} made a change`,sub:"",icon:"edit"};
+}
+function viewHistory(){
+  let list=(S.activity||[]).slice().sort((a,b)=>(b.t||0)-(a.t||0));
+  if(S.histKind==="exp")list=list.filter(a=>HIST_EXP.includes(a.action));
+  if(S.histKind==="pay")list=list.filter(a=>HIST_PAY.includes(a.action));
+  if(S.histWho)list=list.filter(a=>a.by===S.histWho);
+  const total=list.length;list=list.slice(0,S.histLimit);
+  const groups=[];list.forEach(a=>{const k=ymd(new Date(a.t));const g=groups[groups.length-1];if(g&&g.k===k)g.items.push(a);else groups.push({k,items:[a]});});
+  const who=S.me&&mem(S.me)?`You're <b>${esc(mname(S.me))}</b> on this device`:`<span style="color:var(--owed)">You haven't picked your name on this device</span>`;
+  const rows=groups.map(g=>`<div class="grouphead"><span class="t">${esc(fmtDay(g.k))}</span></div>`+g.items.map(a=>{const L=histLine(a);const can=a.eid&&S.expenses.some(x=>x.id===a.eid);
+    return `<div class="hrow ${can?"link":""}" ${can?`data-act="hist-open" data-id="${esc(a.eid)}" role="button" tabindex="0"`:""}>${actorAv(a.by)}<div class="hmain"><div class="htxt">${L.txt}</div>${L.sub?`<div class="small muted">${L.sub}</div>`:""}</div><span class="hdot ${L.icon}"></span><span class="small muted num">${hm(a.t)}</span></div>`;}).join("")).join("");
+  return `<div class="card"><div class="sechead"><p class="small" style="margin:0">${who}</p><button class="btn sm" data-act="me-pick">${S.me&&mem(S.me)?"Change":"Pick your name"}</button></div></div>
+  <div class="card"><div class="sechead">
+    <div class="seg" role="group" aria-label="Show"><button data-act="hist-kind" data-id="all" aria-pressed="${S.histKind==="all"}">All</button><button data-act="hist-kind" data-id="exp" aria-pressed="${S.histKind==="exp"}">Expenses</button><button data-act="hist-kind" data-id="pay" aria-pressed="${S.histKind==="pay"}">Transfers</button></div>
+    <select class="ctl" id="hist-who" aria-label="Done by" style="max-width:200px"><option value="">Everyone</option>${S.members.map(m=>`<option value="${esc(m.id)}" ${S.histWho===m.id?"selected":""}>${esc(m.name)}</option>`).join("")}</select></div>
+    <div class="ledger" style="margin-top:6px">${rows||`<p class="muted" style="padding:20px 4px;margin:0">Nothing recorded yet. From now on, every new or edited expense and every transfer marked as paid shows up here with who did it.</p>`}</div>
+    ${total>list.length?`<div style="text-align:center;margin-top:12px"><button class="btn sm" data-act="hist-more">Show older (${total-list.length})</button></div>`:""}
+  </div>`;
+}
+function expenseChanges(o,n){
+  const c=[];const fmt={amount:v=>rp(v),paidBy:v=>mname(v),eventId:v=>v?evName(v):"No event",date:v=>v?fmtShort(v):"—"};
+  [["desc","Name"],["amount","Amount"],["date","Date"],["paidBy","Paid by"],["cat","Category"],["eventId","Event"]].forEach(([k,l])=>{
+    const a=o[k]??"",b=n[k]??"";if(String(a)!==String(b)){const f=fmt[k]||(v=>v||"—");c.push([l,f(a),f(b)]);}});
+  const sh=x=>JSON.stringify(Object.entries(x.shares||{}).map(([m,v])=>[m,+v.amount]).sort());
+  if(sh(o)!==sh(n))c.push(["Split","previous","updated"]);
+  return c;
+}
 /* ---------- toast & lightbox ---------- */
 let toastT;
 function toast(msg,undo){
@@ -989,7 +1084,7 @@ const receiptSrc=r=>r?(r.url||(r.id?"/_blob/"+r.id:"")):"";
 
 /* ---------- render ---------- */
 const PAGES={dashboard:["Dashboard","Where the group's money goes"],expenses:["Expenses","Every bill, who paid and who still owes"],settle:["Split & settle","Who transfers to whom"],
-  events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],more:["More","Group, members and settings"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
+  events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],more:["More","Group, members and settings"],history:["History","Who added, edited and marked what"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
 function renderAll(){
   applyAppearance();
   const n=S.members.length;
@@ -997,7 +1092,7 @@ function renderAll(){
   if(!PAGES[S.tab])S.tab="dashboard";
   document.querySelectorAll(".nav-i").forEach(t=>{if(t.dataset.id===S.tab)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current");});
   $("#ptitle").textContent=PAGES[S.tab][0];
-  const CFG_TABS=["members","categories","appearance","sync"];const tabHi=CFG_TABS.includes(S.tab)?"more":S.tab;
+  const CFG_TABS=["members","categories","appearance","sync","history"];const tabHi=CFG_TABS.includes(S.tab)?"more":S.tab;
   document.querySelectorAll("#tabbar button").forEach(t=>{if(t.dataset.id===tabHi)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current");});
   $("#btn-back").hidden=!CFG_TABS.includes(S.tab);
   $("#fab-add").hidden=S.readOnly||CFG_TABS.includes(S.tab)||S.tab==="more";
@@ -1006,7 +1101,7 @@ function renderAll(){
    $("#flt-sum").textContent=ctxLabel()+(S.f.person?" · "+mname(S.f.person):"");}$("#psub").textContent=PAGES[S.tab][1];
   $("#btn-add").disabled=S.readOnly;
   $("#btn-scan").hidden=S.readOnly;
-  const cfg=S.tab==="more"||S.tab==="members"||S.tab==="categories"||S.tab==="appearance"||S.tab==="sync";$("#filters").hidden=cfg;
+  const cfg=S.tab==="history"||S.tab==="more"||S.tab==="members"||S.tab==="categories"||S.tab==="appearance"||S.tab==="sync";$("#filters").hidden=cfg;
   const evTab=S.tab==="events";
   $("#fld-preset").hidden=evTab;$("#fld-event").hidden=evTab;
   $("#flt-preset").value=S.f.preset;
@@ -1028,12 +1123,14 @@ function renderAll(){
   else if(S.tab==="categories")v.innerHTML=viewCategories();
   else if(S.tab==="appearance")v.innerHTML=viewAppearance();
   else if(S.tab==="more")v.innerHTML=viewMore();
+  else if(S.tab==="history")v.innerHTML=viewHistory();
   else if(S.tab==="sync")v.innerHTML=viewSync();
   else if(!S.members.length)v.innerHTML=viewOnboard();
   else if(S.tab==="events")v.innerHTML=viewEvents();
   else if(S.tab==="settle")v.innerHTML=viewSettle();
   else if(S.tab==="dashboard")v.innerHTML=viewDash();
   else v.innerHTML=viewExpenses();
+  ensureMe();
   hydratePhotos(v);renderSyncPill();
 }
 
@@ -1120,7 +1217,8 @@ function rowHTML(x){
     else if(S.readOnly)st=s.paid?`<span class="pill paid"><span class="dot"></span>Transferred</span>`:`<span class="pill owed"><span class="dot"></span>Owed</span>`;
     else st=s.paid?`<button class="pill paid" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as still owed"><span class="dot"></span>Transferred</button>`
       :`<button class="pill owed" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as transferred"><span class="dot"></span>Owed · mark paid</button>`;
-    return `<div class="share">${av(s.mid)}<span class="who">${esc(mname(s.mid))}<br><span class="num small muted">${esc(rp(s.amount))}</span></span>${st}</div>`;
+    const mb=s.mid!==x.paidBy&&s.paid&&x.shares[s.mid]&&x.shares[s.mid].markedBy;
+    return `<div class="share">${av(s.mid)}<span class="who">${esc(mname(s.mid))}<br><span class="num small muted">${esc(rp(s.amount))}</span>${mb?`<br><span class="small muted">marked by ${esc(mname(mb))}</span>`:""}</span>${st}</div>`;
   }).join("");
   const items=Array.isArray(x.items)&&x.items.length?`<div class="label" style="margin-top:6px">Items on the bill</div><div class="itemlist">${x.items.map(it=>`<div><span>${esc(it.name)}${(it.qty||1)>1?` <span class="muted">× ${it.qty}</span>`:""}</span><span class="avs">${(it.who&&it.who.length?it.who:[...new Set(x.items.flatMap(i=>i.who||[]))].concat(x.items.some(i=>i.who&&i.who.length)?[]:S.members.map(m=>m.id))).slice(0,6).map(id=>av(id,"sm")).join("")}</span><span class="num">${esc(rp(it.amount))}</span></div>`).join("")}${(x.charges||[]).map(c=>`<div class="chg"><span>${esc(c.label)}</span><span class="small muted">split by items</span><span class="num">${c.less?"−":""}${esc(rp(c.amount))}</span></div>`).join("")}</div>`:"";
   const del=S.confirmDel===x.id
@@ -1134,6 +1232,7 @@ function rowHTML(x){
         <div class="shares">${shares}</div>
         ${items}
         ${x.note?`<p class="small muted" style="margin:0 0 10px">${esc(x.note)}</p>`:""}
+        <p class="small muted xby">${x.createdBy?`Added by ${esc(mname(x.createdBy))} · ${esc(stamp(x.createdAt))}`:`Added ${esc(stamp(x.createdAt))}`}${x.updatedBy&&x.updatedAt&&x.updatedAt-(x.createdAt||0)>60000?` · edited by ${esc(mname(x.updatedBy))} · ${esc(stamp(x.updatedAt))}`:""}</p>
       </div>
       ${x.receipt&&x.receipt.path?`<img class="thumb" data-rpath="${esc(x.receipt.path)}" alt="Bill photo" data-act="lightbox">`:""}
     </div>
@@ -1360,6 +1459,7 @@ function viewMore(){
   const rows=[["members","Members",S.members.length+" of "+MAX_MEMBERS],["categories","Categories",cats().length+" categories"],["appearance","Appearance",modeName+" · "+accName]];
   if(typeof viewSync==="function")rows.push(["sync","Sync & backup",""]);
   return `<div class="card morehead"><div class="mark">${$(".mark")?$(".mark").innerHTML:""}</div><div style="min-width:0"><h2>Wang-Kicau</h2><p class="small muted" style="margin:2px 0 0">${esc(S.config.groupName||"Your group")} · ${S.members.length} member${S.members.length===1?"":"s"} · ${S.events.length} event${S.events.length===1?"":"s"}</p>${typeof renderSyncPill==="function"?`<span class="syncpill" id="sync-status" style="margin-top:8px"></span>`:""}</div></div>
+  <div class="card menu"><button class="menurow" data-act="me-pick"><span class="ml">You</span><span class="small muted">${esc(S.me&&mem(S.me)?mname(S.me):"Pick your name")}</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="menurow" data-act="tab" data-id="history"><span class="ml">History</span><span class="small muted">${(S.activity||[]).length} records</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
   <div class="card menu">${rows.map(([id,l,sub])=>`<button class="menurow" data-act="tab" data-id="${id}"><span class="ml">${l}</span><span class="small muted">${esc(sub)}</span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`).join("")}</div>`;
 }
 function viewAppearance(){
@@ -1431,7 +1531,7 @@ function fillFormSelects(){
 }
 function renderSeg(){
   const f=S.form;const el=$("#xf-seg");if(!el)return;
-  el.innerHTML=[["equal","Equally"],["custom","Custom amounts"],["items","By items"]].map(([k,l])=>`<button type="button" data-act="split" data-id="${k}" aria-pressed="${f.split===k}">${l}</button>`).join("");
+  el.innerHTML=[["equal","Equally"],["custom","Custom"],["items","By items"]].map(([k,l])=>`<button type="button" data-act="split" data-id="${k}" aria-pressed="${f.split===k}">${l}</button>`).join("");
 }
 function renderScan(){
   const el=$("#xf-scan");if(!el)return;setTimeout(()=>hydratePhotos(el),0);const f=S.form;const sc=f.scan;
@@ -1443,8 +1543,8 @@ function renderScan(){
     el.innerHTML=`<label class="label" for="xf-paste">Paste the bill text</label><textarea class="ctl pastebox" id="xf-paste" placeholder="Paste text copied from a bill photo, an e-receipt or a GoFood / GrabFood order"></textarea><div class="acts"><button type="button" class="btn sm primary" data-act="scan-text">Read text</button><button type="button" class="btn sm ghost" data-act="scan-idle">Back</button></div>`;return;}
   el.style.flexDirection="";el.style.alignItems="";
   el.className="scan"+(sc.state==="error"?" bad":"");
-  el.innerHTML=`<div class="ico">${ico.scan}</div><div class="txt"><b>${sc.state==="error"?"Couldn't read that bill":"Scan a bill"}</b><span class="small ${sc.state==="error"?"":"muted"}">${esc(sc.state==="error"?sc.msg:"Upload or drop a photo. The amount, date, category and items are filled in for you. The first scan loads the text reader (about 7 MB).")}</span></div>
-    <div class="acts"><button type="button" class="btn sm primary" data-act="scan-pick">${sc.state==="error"?"Try another photo":"Upload photo"}</button><button type="button" class="btn sm ghost" data-act="scan-paste">Paste text</button></div>`;
+  el.innerHTML=`<div class="ico">${ico.scan}</div><div class="txt"><b>${sc.state==="error"?"Couldn't read that bill":"Scan a bill"}</b><span class="small ${sc.state==="error"?"":"muted"}">${esc(sc.state==="error"?sc.msg:"Take a photo of the bill or pick one from your gallery. The total, date and items are filled in for you.")}</span></div>
+    <div class="acts"><button type="button" class="btn sm primary" data-act="scan-pick"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>${sc.state==="error"?"Try another photo":"Scan bill"}</button><button type="button" class="btn sm" data-act="scan-paste">Paste text</button></div>`;
 }
 
 /* ---- by-items split: each person pays for the items they had, plus the bill's charges (service, PB1/PPN, discounts)
@@ -1579,15 +1679,18 @@ async function submitForm(){
   }
   const prev=f.orig?.shares||{};const shares={};
   Object.entries(sh).forEach(([mid,amt])=>{const p=prev[mid];const keep=p&&+p.amount===amt&&p.paid;
-    shares[mid]={amount:amt,paid:mid===f.paidBy?true:!!keep,paidAt:mid===f.paidBy?"":(keep?p.paidAt||"":"")};});
+    shares[mid]={amount:amt,paid:mid===f.paidBy?true:!!keep,paidAt:mid===f.paidBy?"":(keep?p.paidAt||"":"")};if(keep&&p.markedBy)shares[mid].markedBy=p.markedBy;});
   const id=f.id||uid();
   const doc={date:f.date,desc:f.desc,cat:f.cat,amount:f.amount,paidBy:f.paidBy,split:f.split,shares,note:f.note,eventId:f.eventId||"",
-    createdAt:f.orig?.createdAt||Date.now(),updatedAt:Date.now()};
+    createdAt:f.orig?.createdAt||Date.now(),updatedAt:Date.now(),createdBy:f.orig?(f.orig.createdBy||""):(S.me||""),updatedBy:S.me||""};
   if(f.split==="items"){doc.items=f.items.filter(it=>it.amount>0).map(it=>({name:it.name||"Item",amount:it.amount,qty:it.qty,price:it.price,who:[...it.who]}));
     doc.charges=f.charges.filter(c=>c.amount>0).map(c=>({label:c.label||(c.less?"Discount":"Charge"),amount:c.amount,less:!!c.less}));}
   if(receipt)doc.receipt=receipt;
   closeModal();
-  if(await put("expenses",id,doc))toast(f.id?"Expense updated":"Expense added: "+rp(doc.amount)+(doc.eventId?" · "+evName(doc.eventId):""));
+  if(await put("expenses",id,doc)){
+    if(f.orig)logAct("edit",{eid:id,desc:doc.desc,amount:doc.amount,changes:expenseChanges(f.orig,doc)});
+    else logAct("add",{eid:id,desc:doc.desc,amount:doc.amount,payer:doc.paidBy});
+    toast(f.id?"Expense updated":"Expense added: "+rp(doc.amount)+(doc.eventId?" · "+evName(doc.eventId):""));}
 }
 function closeModal(){
   if(S.form?.scan?.ctrl)try{S.form.scan.ctrl.abort();}catch(e){}
@@ -1832,7 +1935,9 @@ async function handleFile(file){
 async function toggleShare(eid,mid){
   const x=S.expenses.find(e=>e.id===eid);if(!x||!x.shares?.[mid])return;
   const shares=JSON.parse(JSON.stringify(x.shares));const s=shares[mid];s.paid=!s.paid;s.paidAt=s.paid?today():"";
+  if(s.paid){s.markedBy=S.me||"";s.markedAt=Date.now();}else{delete s.markedBy;delete s.markedAt;}
   await patch("expenses",eid,{shares,updatedAt:Date.now()});
+  logAct(s.paid?"paid":"unpaid",{eid,desc:x.desc,from:mid,to:x.paidBy,amount:+s.amount});
   toast(s.paid?`${mname(mid)}'s ${rp(s.amount)} marked as transferred`:`${mname(mid)}'s ${rp(s.amount)} marked as owed again`);
 }
 async function settlePair(a,b){
@@ -1840,11 +1945,13 @@ async function settlePair(a,b){
   const [sa,sb]=[a,b].sort();const p=pairs(fullList()).find(p=>p.a===sa&&p.b===sb);
   for(const x of list){const other=x.paidBy===a?b:a;const s=x.shares?.[other];if(!s||s.paid||!(+s.amount))continue;
     before.push({id:x.id,shares:JSON.parse(JSON.stringify(x.shares))});
-    const shares=JSON.parse(JSON.stringify(x.shares));shares[other].paid=true;shares[other].paidAt=t;
+    const shares=JSON.parse(JSON.stringify(x.shares));shares[other].paid=true;shares[other].paidAt=t;shares[other].markedBy=S.me||"";shares[other].markedAt=Date.now();
     await patch("expenses",x.id,{shares,updatedAt:Date.now()});}
   if(!before.length)return;
+  const amt=p&&p.amount?p.amount:0,fr=p?p.from:a,to=p?p.to:b;
+  logAct("settle",{from:fr,to,amount:amt,n:before.length,eids:before.map(u=>u.id)});
   toast(p&&p.amount?`Marked ${rp(p.amount)} from ${mname(p.from)} to ${mname(p.to)} as transferred`:`Cleared shares between ${mname(a)} and ${mname(b)}`,
-    async()=>{for(const u of before)await patch("expenses",u.id,{shares:u.shares,updatedAt:Date.now()});toast("Transfer undone");});
+    async()=>{for(const u of before)await patch("expenses",u.id,{shares:u.shares,updatedAt:Date.now()});logAct("unsettle",{from:fr,to,amount:amt,n:before.length});toast("Transfer undone");});
 }
 async function copySummary(){
   const P=pairs(fullList()).filter(p=>p.amount);
@@ -1869,6 +1976,11 @@ document.addEventListener("click",async e=>{
     case "status":S.status=id;renderAll();break;
     case "groupby":S.groupBy=id;persist();renderAll();break;
     case "trend":S.trend=id;persist();renderAll();break;
+    case "me-pick":openMePicker();break;
+    case "me-set":{S.me=id;ls.set(ME_KEY,id);closeModal();renderAll();toast("Hi "+mname(id)+"! Your changes will show your name.");break;}
+    case "hist-kind":S.histKind=id;S.histLimit=80;renderAll();break;
+    case "hist-more":S.histLimit+=100;renderAll();break;
+    case "hist-open":{S.tab="expenses";S.f.preset="all";S.f.event="";S.f.cat="";S.f.person="";S.open.add(id);persist();renderAll();setTimeout(()=>{const el=document.querySelector(`.xrow[data-id="${id}"]`);el&&el.scrollIntoView({block:"center"});},50);break;}
     case "filters-toggle":S.filtersOpen=!S.filtersOpen;renderAll();break;
     case "sync-now":setSync("saving");G.dirty?push():pull();break;
     case "backup":downloadBackup();break;
@@ -1882,7 +1994,7 @@ document.addEventListener("click",async e=>{
     case "del":S.confirmDel=id;renderAll();break;
     case "del-no":S.confirmDel=null;renderAll();break;
     case "del-yes":{const x=S.expenses.find(e=>e.id===id);S.confirmDel=null;S.open.delete(id);const ok=await remove("expenses",id);
-      if(ok&&x)toast("Expense deleted",async()=>{const{id:_,...d}=x;await put("expenses",id,d);toast("Expense restored");});break;}
+      if(ok&&x){logAct("delete",{eid:id,desc:x.desc,amount:x.amount});toast("Expense deleted",async()=>{const{id:_,_u:__,...d}=x;await put("expenses",id,d);logAct("restore",{eid:id,desc:x.desc,amount:x.amount});toast("Expense restored");});}break;}
     case "settle":settlePair(t.dataset.a,t.dataset.b);break;
     case "copy":copySummary();break;
     case "undo":{const u=S.undo;S.undo=null;$("#toast-root").innerHTML="";if(u)u();break;}
@@ -1938,6 +2050,7 @@ document.addEventListener("change",async e=>{
   else if(t.id==="flt-from"){S.f.from=t.value;persist();renderAll();}
   else if(t.id==="flt-to"){S.f.to=t.value;persist();renderAll();}
   else if(t.id==="flt-event"){S.f.event=t.value;if(t.value&&t.value!=="_none"&&S.f.preset!=="custom")S.f.preset="all";persist();renderAll();}
+  else if(t.id==="hist-who"){S.histWho=t.value;S.histLimit=80;renderAll();}
   else if(t.id==="flt-cat"){S.f.cat=t.value;persist();renderAll();}
   else if(t.id==="flt-person"){S.f.person=t.value;persist();renderAll();}
   else if(t.dataset.iqty&&f){const it=f.items.find(i=>i.k===t.dataset.iqty);if(it)t.value=it.qty;}
