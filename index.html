@@ -610,6 +610,49 @@ html,body{overflow-x:clip; max-width:100%}
 .mechip:hover{border-color:var(--line-strong)}
 .mechip[aria-pressed="true"]{border-color:var(--accent-ink); background:var(--accent-soft)}
 @media (max-width:720px){ .hrow{grid-template-columns:auto minmax(0,1fr) auto} .hrow .hdot{display:none} #hist-who{max-width:none!important; width:100%} }
+
+/* shares as a clean list: name · amount · status, nothing overlaps */
+.shares{display:flex; flex-direction:column; gap:0; margin-block:8px 14px; border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden; background:var(--surface)}
+.shares .share{display:grid; grid-template-columns:auto minmax(0,1fr) auto 104px; gap:12px; align-items:center; padding:10px 12px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:none; box-shadow:none; min-width:0}
+.shares .share:last-child{border-bottom:0}
+.shares .who{min-width:0}
+.shares .sn{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.shares .ss{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.shares .samt{font-weight:700; text-align:right; white-space:nowrap}
+.shares .is-owed .samt{color:var(--owed)}
+.shares .is-paid .samt{color:var(--muted); text-decoration:line-through; text-decoration-thickness:1px}
+.sstat{display:inline-flex; align-items:center; justify-content:center; gap:4px; height:32px; padding:0 12px; border-radius:999px; font:inherit; font-size:13px; font-weight:700; white-space:nowrap; border:1px solid transparent; justify-self:end}
+.sstat.self{color:var(--muted); background:var(--surface-2)}
+.sstat.paid{color:var(--paid); background:var(--paid-soft)}
+.sstat.owed{color:var(--owed); background:var(--owed-soft)}
+.sstat.act{color:var(--accent-fg); background:var(--accent); cursor:pointer; box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent)}
+.sstat.act:hover{background:var(--accent-strong)}
+button.sstat.paid{cursor:pointer}
+button.sstat.paid:hover{filter:brightness(.97)}
+@media (max-width:720px){ .shares .share{grid-template-columns:auto minmax(0,1fr) auto; row-gap:6px} .shares .sstat{grid-column:2 / -1; justify-self:start} }
+
+@media (max-width:720px){
+  .xrow{grid-template-columns:minmax(0,1fr) auto 18px; column-gap:10px; row-gap:6px}
+  .xrow .xmain{grid-column:1; grid-row:1}
+  .xrow .xamt{grid-column:2; grid-row:1; align-self:start; padding-top:2px}
+  .xrow .chev{grid-column:3; grid-row:1; align-self:start; margin-top:4px}
+  .xrow .xstat{grid-column:1 / -1; grid-row:2; padding-left:22px}
+  .xmeta .avs{display:none}
+}
+
+.shares .share{grid-template-columns:auto minmax(0,1fr) auto; grid-template-rows:auto auto; column-gap:12px; row-gap:6px}
+.shares .share > .av{grid-row:1 / span 2; grid-column:1}
+.shares .who{grid-row:1 / span 2; grid-column:2}
+.shares .samt{grid-row:1; grid-column:3; justify-self:end}
+.shares .sstat{grid-row:2; grid-column:3; justify-self:end; height:30px; font-size:12.5px}
+@media (max-width:720px){ .shares .sstat{grid-column:3} }
+
+@media (max-width:720px){
+  .xdetail > div:first-child > div{flex:1 1 100% !important}
+  .xdetail .thumb{order:-1; height:64px}
+  .itemlist .chg .small{display:none}
+  .itemlist div{grid-template-columns:minmax(0,1fr) auto auto}
+}
 </style>
 <script src="assets/config.js"></script>
 </head>
@@ -1213,12 +1256,15 @@ function rowHTML(x){
   if(!open)return head;
   const shares=parts.map(s=>{
     let st;
-    if(s.mid===x.paidBy)st=`<span class="pill self">Paid the bill</span>`;
-    else if(S.readOnly)st=s.paid?`<span class="pill paid"><span class="dot"></span>Transferred</span>`:`<span class="pill owed"><span class="dot"></span>Owed</span>`;
-    else st=s.paid?`<button class="pill paid" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as still owed"><span class="dot"></span>Transferred</button>`
-      :`<button class="pill owed" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Click to mark as transferred"><span class="dot"></span>Owed · mark paid</button>`;
+    const ck='<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const mb=s.mid!==x.paidBy&&s.paid&&x.shares[s.mid]&&x.shares[s.mid].markedBy;
-    return `<div class="share">${av(s.mid)}<span class="who">${esc(mname(s.mid))}<br><span class="num small muted">${esc(rp(s.amount))}</span>${mb?`<br><span class="small muted">marked by ${esc(mname(mb))}</span>`:""}</span>${st}</div>`;
+    let sub;
+    if(s.mid===x.paidBy){sub="Paid the bill";st=`<span class="sstat self">Payer</span>`;}
+    else if(s.paid){sub="Transferred"+(mb?" · marked by "+mname(mb):"");
+      st=S.readOnly?`<span class="sstat paid">${ck}Paid</span>`:`<button class="sstat paid" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Tap to mark as still owed">${ck}Paid</button>`;}
+    else{sub="Owes "+mname(x.paidBy);
+      st=S.readOnly?`<span class="sstat owed">Owed</span>`:`<button class="sstat act" data-act="share" data-id="${esc(x.id)}" data-m="${esc(s.mid)}" title="Mark as transferred">Mark paid</button>`;}
+    return `<div class="share ${s.mid===x.paidBy?"is-payer":s.paid?"is-paid":"is-owed"}">${av(s.mid)}<div class="who"><div class="sn">${esc(mname(s.mid))}</div><div class="small muted ss">${esc(sub)}</div></div><span class="num samt">${esc(rp(s.amount))}</span>${st}</div>`;
   }).join("");
   const items=Array.isArray(x.items)&&x.items.length?`<div class="label" style="margin-top:6px">Items on the bill</div><div class="itemlist">${x.items.map(it=>`<div><span>${esc(it.name)}${(it.qty||1)>1?` <span class="muted">× ${it.qty}</span>`:""}</span><span class="avs">${(it.who&&it.who.length?it.who:[...new Set(x.items.flatMap(i=>i.who||[]))].concat(x.items.some(i=>i.who&&i.who.length)?[]:S.members.map(m=>m.id))).slice(0,6).map(id=>av(id,"sm")).join("")}</span><span class="num">${esc(rp(it.amount))}</span></div>`).join("")}${(x.charges||[]).map(c=>`<div class="chg"><span>${esc(c.label)}</span><span class="small muted">split by items</span><span class="num">${c.less?"−":""}${esc(rp(c.amount))}</span></div>`).join("")}</div>`:"";
   const del=S.confirmDel===x.id
