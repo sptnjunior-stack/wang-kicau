@@ -653,6 +653,27 @@ button.sstat.paid:hover{filter:brightness(.97)}
   .itemlist .chg .small{display:none}
   .itemlist div{grid-template-columns:minmax(0,1fr) auto auto}
 }
+
+/* who-pays-whom details */
+.pair{grid-template-columns:minmax(0,1fr) auto}
+.phead{cursor:pointer; min-width:0}
+.pmeta{margin-top:4px}
+.pmore{display:inline-flex; align-items:center; gap:3px; color:var(--accent-ink); font-weight:600}
+.pmore svg{transition:transform .15s}
+.pair.open .pmore svg{transform:rotate(180deg)}
+.pdetail{grid-column:1 / -1; margin-top:6px; border-top:1px solid var(--line); padding-top:8px}
+.pdev{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:10px 0 4px}
+.pdev .num{margin-left:auto; text-transform:none; letter-spacing:0}
+.prow{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line)}
+.plink{display:flex; flex-direction:column; align-items:flex-start; min-width:0; border:0; background:none; padding:0; font:inherit; color:inherit; text-align:left; cursor:pointer}
+.plink:hover .pdesc{color:var(--accent-ink); text-decoration:underline}
+.pdesc{font-weight:600; font-size:14px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pamt{font-weight:700; color:var(--owed); white-space:nowrap}
+.pamt.neg2{color:var(--paid)}
+.sstat.sm2{height:28px; padding:0 10px; font-size:12px}
+.pnet{display:flex; justify-content:space-between; gap:10px; padding-top:10px; font-weight:700}
+.evdel{margin:0 18px 4px; padding:12px 14px; border-radius:var(--r-sm); background:var(--owed-soft)}
+.evdel-b{display:flex; gap:8px; flex-wrap:wrap}
 </style>
 <script src="assets/config.js"></script>
 </head>
@@ -672,7 +693,7 @@ button.sstat.paid:hover{filter:brightness(.97)}
   <nav class="nav" id="nav" aria-label="Sections">
     <button class="nav-i" data-act="tab" data-id="dashboard"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dashboard</span></button>
     <button class="nav-i" data-act="tab" data-id="expenses"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Expenses</span></button>
-    <button class="nav-i" data-act="tab" data-id="settle"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Split &amp; settle</span></button>
+    <button class="nav-i" data-act="tab" data-id="settle"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Split &amp; Settle</span></button>
     <button class="nav-i" data-act="tab" data-id="events"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Events</span></button>
     <button class="nav-i" data-act="tab" data-id="history"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 103-6.7M3 4v4h4M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>History</span></button>
     <div class="nav-group">
@@ -1056,7 +1077,7 @@ async function restoreBackup(file){
 
 /* ---------- who is using this device + activity log ---------- */
 const ME_KEY=typeof REPO_ID!=="undefined"?"wk-me:"+REPO_ID:"wk-me";
-S.activity=S.activity||[];S.me=ls.get(ME_KEY)||"";S.histKind="all";S.histWho="";S.histLimit=80;
+S.activity=S.activity||[];S.openPairs=new Set();S.me=ls.get(ME_KEY)||"";S.histKind="all";S.histWho="";S.histLimit=80;
 function logAct(action,data){const id=uid();put("activity",id,Object.assign({t:Date.now(),by:S.me||"",action},data||{}));}
 function openMePicker(){
   if(!S.members.length)return;
@@ -1126,7 +1147,7 @@ function lightbox(src){$("#lightbox-root").innerHTML=src?`<div class="lightbox" 
 const receiptSrc=r=>r?(r.url||(r.id?"/_blob/"+r.id:"")):"";
 
 /* ---------- render ---------- */
-const PAGES={dashboard:["Dashboard","Where the group's money goes"],expenses:["Expenses","Every bill, who paid and who still owes"],settle:["Split & settle","Who transfers to whom"],
+const PAGES={dashboard:["Dashboard","Where the group's money goes"],expenses:["Expenses","Every bill, who paid and who still owes"],settle:["Split & Settle","Who transfers to whom"],
   events:["Events","Trips, projects and occasions"],members:["Members","Configuration · up to 10 people"],categories:["Categories","Configuration · how spending is grouped"],more:["More","Group, members and settings"],history:["History","Who added, edited and marked what"],appearance:["Appearance","Configuration · mode and colour theme"],sync:["Sync & backup","Configuration · GitHub data repo"]};
 function renderAll(){
   applyAppearance();
@@ -1310,7 +1331,7 @@ function viewEvents(){
       <div class="evbtns">
         <button class="btn sm" data-act="ev-view" data-id="${id}" ${s.n?"":"disabled"}>View expenses</button>
         <button class="btn sm" data-act="ev-settle" data-id="${id}" ${s.n?"":"disabled"}>Settle</button>
-        ${e&&!S.readOnly?`<button class="btn sm ghost" data-act="ev-edit" data-id="${e.id}">Edit</button>`:""}
+        ${e&&!S.readOnly?`<button class="btn sm ghost" data-act="ev-edit" data-id="${e.id}">Edit</button><button class="btn sm ghost" data-act="ev-del-ask" data-id="${e.id}">Delete</button>`:""}
       </div></div>`;};
   const evs=sortedEvents();
   const grand=list.reduce((a,x)=>a+amountFor(x,S.f.person),0);
@@ -1322,7 +1343,7 @@ function viewEvents(){
   ${evs.length?"":`<div class="card empty"><h2>No events yet</h2><p class="muted">Create one for a trip like “Bali Oct 2026” or a project like “House rent Q4”, then tag expenses to it.</p>${S.readOnly?"":`<button class="btn primary" data-act="ev-new">+ New event</button>`}</div>`}
   <div class="evgrid">${evs.map(card).join("")}${st[""]?card(null):""}</div>`;
 }
-function openEventForm(e){
+function openEventForm(e,opt={}){
   S.evform={id:e?.id||null,orig:e||null};
   const used=e?S.expenses.some(x=>x.eventId===e.id):false;
   $("#modal-root").innerHTML=`<div class="overlay" data-act="overlay"><form class="modal" id="evform" role="dialog" aria-modal="true" aria-labelledby="ev-title" novalidate style="max-width:480px">
@@ -1336,7 +1357,10 @@ function openEventForm(e){
       ${e?`<label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ev-closed" ${e.closed?"checked":""} style="accent-color:var(--accent)">Closed (hide from the add-expense list)</label>`:""}
       <div class="err" id="ev-err" hidden></div>
     </div>
-    <footer><span>${e?(used?`<span class="small muted">Has expenses, so it can't be deleted</span>`:`<button type="button" class="btn sm danger" data-act="ev-del" data-id="${e.id}">Delete event</button>`):""}</span>
+    ${e&&opt.confirmDel?(()=>{const n=S.expenses.filter(x=>x.eventId===e.id).length;return `<div class="evdel"><b>Delete ${esc(e.name)}?</b>${n?`<p class="small muted" style="margin:4px 0 10px">It has ${n} expense${n===1?"":"s"}. Choose what happens to ${n===1?"it":"them"}:</p>
+      <div class="evdel-b"><button type="button" class="btn sm" data-act="ev-del-keep" data-id="${e.id}">Delete event, keep expenses</button><button type="button" class="btn sm danger" data-act="ev-del-all" data-id="${e.id}">Delete event and ${n} expense${n===1?"":"s"}</button></div>`
+      :`<div class="evdel-b" style="margin-top:10px"><button type="button" class="btn sm danger" data-act="ev-del" data-id="${e.id}">Delete event</button></div>`}</div>`;})():""}
+    <footer><span>${e&&!opt.confirmDel?`<button type="button" class="btn sm danger" data-act="ev-del-ask" data-id="${e.id}">Delete event</button>`:""}</span>
       <div style="display:flex;gap:8px"><button type="button" class="btn" data-act="close">Cancel</button><button type="submit" class="btn primary">${e?"Save":"Create event"}</button></div></footer>
   </form></div>`;
   setTimeout(()=>$("#ev-name")?.focus(),30);
@@ -1362,12 +1386,26 @@ function viewSettle(){
   const base=baseList();const list=fullList();
   if(!S.expenses.length)return emptyFiltered();
   const P=pairs(list);
-  const pairHTML=P.length?P.map(p=>`<div class="pair">
-      <div><div class="pairwho">${av(p.from)}<b>${esc(mname(p.from))}</b><span class="arrow">pays →</span>${av(p.to)}<b>${esc(mname(p.to))}</b></div>
-      <div class="small muted" style="margin-top:4px">From ${p.n} expense${p.n>1?"s":""}${p.offset?` · ${esc(rp(p.offset))} offset both ways`:""}</div></div>
+  const D=debts(list);
+  const pairDetail=p=>{const rows=D.filter(d=>(d.from===p.a&&d.to===p.b)||(d.from===p.b&&d.to===p.a)).map(d=>{const x=S.expenses.find(e=>e.id===d.eid)||{};return Object.assign({},d,{x});})
+      .sort((u,v)=>(v.x.date||"").localeCompare(u.x.date||""));
+    const ev={};rows.forEach(r=>{const k=evOf(r.x);(ev[k]=ev[k]||[]).push(r);});
+    const keys=Object.keys(ev).sort((a,b)=>(a?0:1)-(b?0:1));
+    return `<div class="pdetail">${keys.map(k=>{const rs=ev[k];const sub=rs.reduce((t,r)=>t+(r.from===p.from?r.amount:-r.amount),0);
+      return `<div class="pdev"><span class="catdot" style="background:${k?evColor(k):"var(--line-strong)"}"></span>${esc(k?evName(k):"Not in an event")}<span class="num">${sub<0?"−":""}${esc(rp(Math.abs(sub)))}</span></div>`+
+      rs.map(r=>{const fwd=r.from===p.from;return `<div class="prow">
+        <button class="plink" data-act="hist-open" data-id="${esc(r.eid)}"><span class="pdesc">${esc(r.x.desc||r.x.cat||"Expense")}</span><span class="small muted">${esc(r.x.date?fmtShort(r.x.date):"")} · ${esc(mname(r.from))} owes ${esc(mname(r.to))}</span></button>
+        <span class="num pamt ${fwd?"":"neg2"}">${fwd?"":"−"}${esc(rp(r.amount))}</span>
+        ${S.readOnly?"":`<button class="sstat act sm2" data-act="share" data-id="${esc(r.eid)}" data-m="${esc(r.from)}" title="Mark this share as transferred">Paid</button>`}</div>`;}).join("");}).join("")}
+      <div class="pnet"><span>Net: ${esc(mname(p.from))} pays ${esc(mname(p.to))}</span><span class="num">${esc(rp(p.amount))}</span></div>
+      ${p.offset?`<p class="small muted" style="margin:6px 0 0">Amounts with − are what ${esc(mname(p.to))} owes ${esc(mname(p.from))}; they're subtracted.</p>`:""}</div>`;};
+  const pairHTML=P.length?P.map(p=>{const k=p.a+"|"+p.b;const open=S.openPairs.has(k);return `<div class="pair ${open?"open":""}">
+      <div class="phead" data-act="pair-toggle" data-id="${esc(k)}" role="button" tabindex="0" aria-expanded="${open}"><div class="pairwho">${av(p.from)}<b>${esc(mname(p.from))}</b><span class="arrow">pays →</span>${av(p.to)}<b>${esc(mname(p.to))}</b></div>
+      <div class="small muted pmeta">From ${p.n} expense${p.n>1?"s":""}${p.offset?` · ${esc(rp(p.offset))} offset both ways`:""} · <span class="pmore">${open?"Hide details":"See details"}<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div>
       <div class="pairright"><div class="pairamt num">${p.amount?esc(rp(p.amount)):"Even"}</div>
       ${S.readOnly?"":`<button class="btn sm primary" data-act="settle" data-a="${esc(p.a)}" data-b="${esc(p.b)}">${p.amount?"Mark transferred":"Clear both"}</button>`}</div>
-    </div>`).join("")
+      ${open?pairDetail(p):""}
+    </div>`;}).join("")
     :`<div class="empty" style="padding:24px 8px"><span class="pill paid" style="font-size:14px"><span class="dot"></span>All settled</span><p class="muted small">Nobody owes anything${filtersActive()?" in this view":""}.</p></div>`;
   const B=balances(base);
   const rows=S.members.map(m=>{const b=B[m.id];const net=b.gets-b.owes;
@@ -1435,7 +1473,7 @@ function viewDash(){
   const people=S.members.map(m=>({id:m.id,v:B[m.id]?.share||0})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
   const groupTotal=people.reduce((a,r)=>a+r.v,0);const pmx=people[0]?.v||1;
   const spendBody=people.length?people.map((r,i)=>`<div class="hb ${p&&p!==r.id?"dim":""}"><span class="nm"><span class="rank num">${i+1}</span>${av(r.id,"sm")}<span class="t">${esc(mname(r.id))}</span></span><span class="track"><span class="fill" style="width:${(r.v/pmx*100).toFixed(1)}%;background:${mcolor(r.id)}"></span></span><span class="num small">${esc(rp(r.v))} <span class="muted">${groupTotal?Math.round(r.v/groupTotal*100):0}%</span></span></div>`).join(""):`<p class="small muted">No spending in this view.</p>`;
-  const owedBody=P.length?P.map(x=>`<div class="owrow"><span class="pairwho">${av(x.from,"sm")}<b>${esc(mname(x.from))}</b><span class="arrow">→</span>${av(x.to,"sm")}<b>${esc(mname(x.to))}</b></span><span class="num owamt">${esc(rp(x.amount))}</span>${S.readOnly?"":`<button class="btn sm" data-act="settle" data-a="${esc(x.a)}" data-b="${esc(x.b)}">Mark transferred</button>`}</div>`).join("")+`<button class="btn sm ghost" data-act="tab" data-id="settle" style="margin-top:6px">Open Split &amp; settle</button>`
+  const owedBody=P.length?P.map(x=>`<div class="owrow"><span class="pairwho">${av(x.from,"sm")}<b>${esc(mname(x.from))}</b><span class="arrow">→</span>${av(x.to,"sm")}<b>${esc(mname(x.to))}</b></span><span class="num owamt">${esc(rp(x.amount))}</span>${S.readOnly?"":`<button class="btn sm" data-act="settle" data-a="${esc(x.a)}" data-b="${esc(x.b)}">Mark transferred</button>`}</div>`).join("")+`<button class="btn sm ghost" data-act="tab" data-id="settle" style="margin-top:6px">Open Split &amp; Settle</button>`
     :`<p class="small muted" style="margin:0"><span class="pill paid"><span class="dot"></span>All settled</span> Nobody owes anything in this view.</p>`;
   const t=trendSVG(list,S.trend);
   const bars=(arr,color,label)=>{const mx=arr[0]?.[1]||1;return arr.map(([k,v])=>`<div class="hb"><span class="nm"><span class="catdot" style="background:${color(k)}"></span><span class="t">${esc(label(k))}</span></span><span class="track"><span class="fill" style="width:${(v/mx*100).toFixed(1)}%;background:${color(k)}"></span></span><span class="num small">${esc(rpc(v))} <span class="muted">${total?Math.round(v/total*100):0}%</span></span></div>`).join("");};
@@ -2022,6 +2060,12 @@ document.addEventListener("click",async e=>{
     case "status":S.status=id;renderAll();break;
     case "groupby":S.groupBy=id;persist();renderAll();break;
     case "trend":S.trend=id;persist();renderAll();break;
+    case "pair-toggle":if(e.target.closest("button"))return;S.openPairs.has(id)?S.openPairs.delete(id):S.openPairs.add(id);renderAll();break;
+    case "ev-del-ask":{const ev=evt(id);if(ev)openEventForm(ev,{confirmDel:true});break;}
+    case "ev-del-keep":case "ev-del-all":{const ev=evt(id);if(!ev)break;const xs=S.expenses.filter(x=>x.eventId===id);closeModal();
+      for(const x of xs){if(a==="ev-del-all"){await remove("expenses",x.id);logAct("delete",{eid:x.id,desc:x.desc,amount:x.amount});}else await patch("expenses",x.id,{eventId:"",updatedAt:Date.now()});}
+      await remove("events",id);if(S.f.event===id){S.f.event="";persist();renderAll();}
+      toast(a==="ev-del-all"?`${ev.name} and ${xs.length} expense${xs.length===1?"":"s"} deleted`:`${ev.name} deleted. Its expenses are kept without an event.`);break;}
     case "me-pick":openMePicker();break;
     case "me-set":{S.me=id;ls.set(ME_KEY,id);closeModal();renderAll();toast("Hi "+mname(id)+"! Your changes will show your name.");break;}
     case "hist-kind":S.histKind=id;S.histLimit=80;renderAll();break;
